@@ -1,12 +1,18 @@
 ﻿#include <algorithm>
 #include <map>
+#include <vector>
 #include <memory>
 #include <thread>
 #include <mutex>
 #include <functional>
 #include <atomic>
+#include <cstdint>
 
-#include "GFSDK_HairWorks.h"
+#include <d3d11.h>
+#include <directXMath.h>
+#include <GFSDK_HairWorks.h>
+
+using namespace DirectX;
 
 #ifdef _WIN32
 #define hwWindows
