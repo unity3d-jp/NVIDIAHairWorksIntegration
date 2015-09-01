@@ -8,46 +8,36 @@ public:
     hwContext();
     ~hwContext();
 
-    bool initialize(const char *path_to_dll);
-    bool finalize();
-
-    hwAssetID       loadAssetFromFile(const char *path);
-    bool            deleteAsset(hwAssetID asset_id);
-
-    hwInstanceID    createInstance(hwAssetID asset_id);
-    bool            deleteInstance(hwInstanceID instance_id);
-    hwInstance*     getInstance(hwInstanceID instance_id);
-
-    void setViewProjectionMatrix(const hwMatrix &view, const hwMatrix &proj);
-    void stepSimulation();
-    void render();
-
+    operator bool() const;
     hwSDK* getSDK() const;
 
+    bool initialize(const char *path_to_dll, void *d3d11_device);
+    bool finalize();
+
+    hwAssetID       loadAssetFromFile(const std::string &path);
+    bool            deleteAsset(hwAssetID aid);
+
+    hwInstanceID    createInstance(hwAssetID aid);
+    bool            deleteInstance(hwInstanceID iid);
+
+    void getDescriptor(hwInstanceID iid, hwHairDescriptor &desc) const;
+    void setDescriptor(hwInstanceID iid, const hwHairDescriptor &desc);
+    void updateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);
+
+    void setRenderTarget(void *framebuffer, void *depthbuffer);
+    void setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov);
+    void render(hwInstanceID iid);
+    void renderShadow(hwInstanceID iid);
+    void stepSimulation(float dt);
+
 private:
-    hwSDK                               *m_sdk;
-    std::map<std::string, hwAssetID>    m_assets_table;
-    std::vector<hwInstance*>            m_instances;
-    hwMatrix                            m_view;
-    hwMatrix                            m_projection;
-};
-
-
-class hwInstance
-{
-public:
-    hwInstance(hwContext *ctx, hwInstanceID id);
-    operator bool() const;
-    hwInstanceID getID() const;
-
-    const hwHairDescriptor& getDescriptor() const;
-    void setDescriptor(const hwHairDescriptor &desc);
-    void updateSkinningMatrices(int num_matrices, const hwMatrix *matrices);
-
-private:
-    hwContext *m_ctx;
-    hwInstanceID m_id;
-    hwHairDescriptor m_desc;
+    typedef std::map<std::string, hwAssetID>    AssetCont;
+    typedef std::vector<hwInstanceID>           InstanceCont;
+    hwSDK           *m_sdk;
+    AssetCont       m_assets;
+    InstanceCont    m_instances;
+    hwMatrix        m_view;
+    hwMatrix        m_projection;
 };
 
 #endif // hwContext_h

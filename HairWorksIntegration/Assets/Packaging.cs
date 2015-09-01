@@ -17,7 +17,7 @@ public class Packaging
 "Assets/StreamingAssets/UTJ/HairWorksIntegration",
 "Assets/smcs.rsp",
         };
-        AssetDatabase.ExportPackage(files, "MassParticle.unitypackage", ExportPackageOptions.Recurse);
+        AssetDatabase.ExportPackage(files, "HairWorksIntegration.unitypackage", ExportPackageOptions.Recurse);
     }
 
 }

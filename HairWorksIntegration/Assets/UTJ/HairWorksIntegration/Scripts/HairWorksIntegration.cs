@@ -188,10 +188,11 @@ public unsafe class HairWorksIntegration
 
     [DllImport ("HairWorksIntegration")] public static extern hwInstanceID hwCreateInstance(hwAssetID aid);
     [DllImport ("HairWorksIntegration")] public static extern bool hwDeleteInstance(hwInstanceID iid);
-    [DllImport ("HairWorksIntegration")] public static extern void hwSetDescriptor(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern void hwSetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void hwUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, Matrix4x4 *matrices);
 
     [DllImport ("HairWorksIntegration")] public static extern float hwSetViewProjectionMatrix(ref Matrix4x4 view, ref Matrix4x4 proj);
-    [DllImport ("HairWorksIntegration")] public static extern float hwStepSimulation();
-    [DllImport ("HairWorksIntegration")] public static extern void hwRender();
+    [DllImport ("HairWorksIntegration")] public static extern void hwRender(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern void hwRenderShadow(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern float hwStepSimulation(float dt);
 }

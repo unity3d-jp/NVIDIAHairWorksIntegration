@@ -49,19 +49,116 @@ hwCLinkage hwExport void UnityRenderEvent(int eventID)
 
 
 
-bool hwInitialize(const char *path_to_dll)
+hwCLinkage hwExport bool hwInitialize(const char *path_to_dll)
 {
-    if (g_hwContext == nullptr) {
+    if (g_hwContext != nullptr) {
+        return true;
+    }
 
+    g_hwContext = new hwContext();
+    if (g_hwContext->initialize(path_to_dll, g_d3d11_device)) {
+        return true;
+    }
+    else {
+        hwFinalize();
+        return false;
     }
 }
 
-void hwFinalize(hwContext *ctx)
+hwCLinkage hwExport void hwFinalize()
 {
-
+    delete g_hwContext;
+    g_hwContext = nullptr;
 }
 
-hwContext* hwGetContext();
-bool hwLoadAssetFromFile(hwContext *ctx, const char *path);
-bool hwLoadAssetFromMemory(hwContext *ctx, const void *data);
+hwCLinkage hwExport hwContext* hwGetContext()
+{
+    return g_hwContext;
+}
+
+
+
+
+hwCLinkage hwExport hwAssetID hwLoadAssetFromFile(const char *path)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->loadAssetFromFile(path);
+    }
+    return hwNullID;
+}
+
+hwCLinkage hwExport bool hwDeleteAsset(hwAssetID aid)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->deleteAsset(aid);
+    }
+    return false;
+}
+
+
+hwCLinkage hwExport hwInstanceID hwCreateInstance(hwAssetID aid)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->createInstance(aid);
+    }
+    return hwNullID;
+}
+hwCLinkage hwExport bool hwDeleteInstance(hwInstanceID iid)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->deleteInstance(iid);
+    }
+    return false;
+}
+hwCLinkage hwExport void hwGetDescriptor(hwInstanceID iid, hwHairDescriptor *desc)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->getDescriptor(iid, *desc);
+    }
+}
+hwCLinkage hwExport void hwSetDescriptor(hwInstanceID iid, const hwHairDescriptor *desc)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->setDescriptor(iid, *desc);
+    }
+}
+hwCLinkage hwExport void hwUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->updateSkinningMatrices(iid, num_matrices, matrices);
+    }
+}
+
+
+hwCLinkage hwExport void hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->setViewProjection(*view, *proj, fov);
+    }
+}
+hwCLinkage hwExport void hwSetRenderTarget(void *framebuffer, void *depthbuffer)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->setRenderTarget(framebuffer, depthbuffer);
+    }
+}
+hwCLinkage hwExport void hwRender(hwInstanceID iid)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->render(iid);
+    }
+}
+hwCLinkage hwExport void hwRenderShadow(hwInstanceID iid)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->renderShadow(iid);
+    }
+}
+hwCLinkage hwExport void hwStepSimulation(float dt)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->stepSimulation(dt);
+    }
+}
+
 
