@@ -49,6 +49,25 @@ hwCLinkage hwExport void UnityRenderEvent(int eventID)
 
 
 
+#ifdef hwDebug
+void hwDebugLogImpl(const char* fmt, ...)
+{
+    va_list vl;
+    va_start(vl, fmt);
+
+#ifdef hwWindows
+    char buf[2048];
+    vsprintf(buf, fmt, vl);
+    ::OutputDebugStringA(buf);
+#else // hwWindows
+    vprintf(fmt, vl);
+#endif // hwWindows
+
+    va_end(vl);
+}
+#endif // hwDebug
+
+
 hwCLinkage hwExport bool hwInitialize(const char *path_to_dll)
 {
     if (g_hwContext != nullptr) {
@@ -81,16 +100,17 @@ hwCLinkage hwExport hwContext* hwGetContext()
 
 hwCLinkage hwExport hwAssetID hwLoadAssetFromFile(const char *path)
 {
+    if (path == nullptr) { return hwNullID; }
     if (auto ctx = hwGetContext()) {
         return ctx->loadAssetFromFile(path);
     }
     return hwNullID;
 }
 
-hwCLinkage hwExport bool hwDeleteAsset(hwAssetID aid)
+hwCLinkage hwExport bool hwReleaseAsset(hwAssetID aid)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->deleteAsset(aid);
+        return ctx->releaseAsset(aid);
     }
     return false;
 }
@@ -103,10 +123,10 @@ hwCLinkage hwExport hwInstanceID hwCreateInstance(hwAssetID aid)
     }
     return hwNullID;
 }
-hwCLinkage hwExport bool hwDeleteInstance(hwInstanceID iid)
+hwCLinkage hwExport bool hwReleaseInstance(hwInstanceID iid)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->deleteInstance(iid);
+        return ctx->releaseInstance(iid);
     }
     return false;
 }

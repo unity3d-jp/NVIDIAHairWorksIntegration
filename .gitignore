@@ -1,4 +1,5 @@
 *.obj
+*.cso
 *.pch
 *.dll
 *.lib

@@ -10,4 +10,20 @@
     <ClInclude Include="HairWorkdIntegration.h" />
     <ClInclude Include="hwContext.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{6ef1885a-c8c1-4b84-9969-985e1ca205dd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleCommon\HairWorksSampleSkinnedVertexShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleCommon\HairWorksSampleVisualizeShadow.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleCommon\HairWorksSampleSkinnedPixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

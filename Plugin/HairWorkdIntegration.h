@@ -24,10 +24,10 @@ hwCLinkage hwExport hwContext*      hwGetContext();
 
 
 hwCLinkage hwExport hwAssetID       hwLoadAssetFromFile(const char *path);
-hwCLinkage hwExport bool            hwDeleteAsset(hwAssetID aid);
+hwCLinkage hwExport bool            hwReleaseAsset(hwAssetID aid);
 
 hwCLinkage hwExport hwInstanceID    hwCreateInstance(hwAssetID aid);
-hwCLinkage hwExport bool            hwDeleteInstance(hwInstanceID iid);
+hwCLinkage hwExport bool            hwReleaseInstance(hwInstanceID iid);
 hwCLinkage hwExport void            hwGetDescriptor(hwInstanceID iid, hwHairDescriptor *desc);
 hwCLinkage hwExport void            hwSetDescriptor(hwInstanceID iid, const hwHairDescriptor *desc);
 hwCLinkage hwExport void            hwUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);

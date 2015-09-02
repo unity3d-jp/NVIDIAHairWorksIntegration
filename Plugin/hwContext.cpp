@@ -32,18 +32,18 @@ bool hwContext::initialize(const char *path_to_dll, void *d3d11_device)
 
     m_sdk = GFSDK_LoadHairSDK(path_to_dll, GFSDK_HAIRWORKS_VERSION);
     if (m_sdk != nullptr) {
-        hwDebugLog("hwContext::initialize(): GFSDK_LoadHairSDK() succeeded. (%s)\n", path_to_dll);
+        hwDebugLog("GFSDK_LoadHairSDK(\"%s\") succeeded.\n", path_to_dll);
     }
     else {
-        hwDebugLog("hwContext::initialize(): GFSDK_LoadHairSDK() failed. (%s)\n", path_to_dll);
+        hwDebugLog("GFSDK_LoadHairSDK(\"%s\") failed.\n", path_to_dll);
         return false;
     }
 
     if (m_sdk->InitRenderResources((ID3D11Device*)d3d11_device) == GFSDK_HAIR_RETURN_OK) {
-        hwDebugLog("hwContext::initialize(): InitRenderResources() succeeded.\n");
+        hwDebugLog("InitRenderResources() succeeded.\n");
     }
     else {
-        hwDebugLog("hwContext::initialize(): InitRenderResources() failed.\n");
+        hwDebugLog("InitRenderResources() failed.\n");
         finalize();
         return false;
     }
@@ -67,51 +67,64 @@ hwAssetID hwContext::loadAssetFromFile(const std::string &path)
     {
         auto i = m_assets.find(path);
         if (i != m_assets.end()) {
-            return i->second;
+            ++i->second.ref_count;
+            return i->second.id;
         }
     }
 
     hwAssetID aid = hwNullID;
     if (m_sdk->LoadHairAssetFromFile(path.c_str(), (GFSDK_HairAssetID*)&aid) == GFSDK_HAIR_RETURN_OK) {
-        m_assets[path] = aid;
-        hwDebugLog("hwContext::loadAssetFromFile(): LoadHairAssetFromFile() succeeded. (%s)\n", path.c_str());
+        auto &v = m_assets[path];
+        v.id = aid;
+        ++v.ref_count;
+        hwDebugLog("LoadHairAssetFromFile(\"%s\") succeeded.\n", path.c_str());
     }
     else {
-        hwDebugLog("hwContext::loadAssetFromFile(): LoadHairAssetFromFile() failed. (%s)\n", path.c_str());
+        hwDebugLog("LoadHairAssetFromFile(\"%s\") failed.\n", path.c_str());
     }
     return aid;
 }
 
-bool hwContext::deleteAsset(hwAssetID aid)
+bool hwContext::releaseAsset(hwAssetID aid)
 {
     bool ret = false;
     auto i = std::find_if(
         m_assets.begin(), m_assets.end(),
-        [=](const AssetCont::value_type &p) { return p.second == aid; });
-    if (i != m_assets.end()) {
-        ret = m_sdk->FreeHairAsset((GFSDK_HairAssetID)i->second) == GFSDK_HAIR_RETURN_OK;
+        [=](const AssetCont::value_type &p) { return p.second.id == aid; });
+    if (i != m_assets.end() && --i->second.ref_count==0) {
+        ret = m_sdk->FreeHairAsset((GFSDK_HairAssetID)i->second.id) == GFSDK_HAIR_RETURN_OK;
         m_assets.erase(i);
     }
+
+    if (ret){ hwDebugLog("FreeHairAsset(%d) succeeded.\n", aid); }
+    else    { hwDebugLog("FreeHairAsset(%d) failed.\n", aid); }
     return ret;
 }
 
-hwInstanceID hwContext::createInstance(hwAssetID asset_id)
+hwInstanceID hwContext::createInstance(hwAssetID aid)
 {
     hwInstanceID iid = hwNullID;
-    if (m_sdk->CreateHairInstance((GFSDK_HairAssetID)asset_id, (GFSDK_HairInstanceID*)&iid) == GFSDK_HAIR_RETURN_OK) {
-        m_instances.resize(std::max<int>(m_instances.size(), iid));
+    if (m_sdk->CreateHairInstance((GFSDK_HairAssetID)aid, (GFSDK_HairInstanceID*)&iid) == GFSDK_HAIR_RETURN_OK) {
+        m_instances.resize(std::max<int>(m_instances.size(), aid));
         m_instances[iid] = iid;
+        hwDebugLog("CreateHairInstance(%d) succeeded.\n", aid);
+    }
+    else
+    {
+        hwDebugLog("CreateHairInstance(%d) failed.\n", aid);
     }
     return iid;
 }
 
-bool hwContext::deleteInstance(hwInstanceID instance_id)
+bool hwContext::releaseInstance(hwInstanceID iid)
 {
     bool ret = false;
-    if (instance_id < m_instances.size() && m_instances[instance_id] != hwNullID) {
-        ret = m_sdk->FreeHairInstance((GFSDK_HairInstanceID)m_instances[instance_id]) == GFSDK_HAIR_RETURN_OK;
-        m_instances[instance_id] = hwNullID;
+    if (iid < m_instances.size() && m_instances[iid]!=hwNullID) {
+        ret = m_sdk->FreeHairInstance((GFSDK_HairInstanceID)m_instances[iid]) == GFSDK_HAIR_RETURN_OK;
+        m_instances[iid] = hwNullID;
     }
+    if (ret){ hwDebugLog("FreeHairInstance(%d) succeeded.\n", iid); }
+    else    { hwDebugLog("FreeHairInstance(%d) failed.\n", iid); }
     return ret;
 }
 
@@ -157,5 +170,4 @@ void hwContext::stepSimulation(float dt)
 {
     m_sdk->StepSimulation(dt);
 }
-
 

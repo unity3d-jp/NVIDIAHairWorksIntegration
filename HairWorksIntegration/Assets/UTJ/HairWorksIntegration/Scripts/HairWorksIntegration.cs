@@ -8,16 +8,33 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
+[System.Serializable]
 public struct hwAssetID
 {
+    public static hwAssetID NullID = new hwAssetID(0xFFFF);
+
     public int id;
+
+    public hwAssetID(int v) { this.id = v; }
+    public static implicit operator hwAssetID(int v) { return new hwAssetID(v); }
+    public static implicit operator int (hwAssetID v) { return v.id; }
+    public static implicit operator bool (hwAssetID v) { return v.id != 0xFFFF; }
 }
 
+[System.Serializable]
 public struct hwInstanceID
 {
+    public static hwInstanceID NullID = new hwInstanceID(0xFFFF);
+
     public int id;
+
+    public hwInstanceID(int v) { this.id = v; }
+    public static implicit operator hwInstanceID(int v) { return new hwInstanceID(v); }
+    public static implicit operator int (hwInstanceID v) { return v.id; }
+    public static implicit operator bool (hwInstanceID v) { return v.id != 0xFFFF; }
 }
 
+[System.Serializable]
 public unsafe struct hwDescriptor
 {
     // global controls
@@ -49,8 +66,8 @@ public unsafe struct hwDescriptor
 
     /// shading controls
     float m_rootAlphaFalloff;           //!< [0 - 1.0] falloff factor for alpha transition from root 
-    Vector4 m_rootColor;               //!< [0 - 1.0] color of hair root (when hair textures are not used)
-    Vector4 m_tipColor;                    //!< [0 - 1.0] color of hair tip (when hair textures are not used)
+    Color m_rootColor;               //!< [0 - 1.0] color of hair root (when hair textures are not used)
+    Color m_tipColor;                    //!< [0 - 1.0] color of hair tip (when hair textures are not used)
     float m_rootTipColorWeight;     //!< [0 - 1.0] blend factor between root and tip color in addition to hair length
     float m_rootTipColorFalloff;        //!< [0 - 1.0] falloff factor for root/tip color interpolation
 
@@ -58,7 +75,7 @@ public unsafe struct hwDescriptor
     float m_hairNormalWeight;           //!< [0 - 1.0] blend factor between mesh normal vs hair normal. Use higher value for longer (surface like) hair.
     int m_hairNormalBoneIndex;        //!< [0 - number of bones] index for the bone which we use as model center for diffuse shading purpose
 
-    Vector4 m_specularColor;           //!< [0 - 1.0] specular color
+    Color m_specularColor;           //!< [0 - 1.0] specular color
     float m_specularNoiseScale;     //!< [0 - 1.0] amount of specular noise
     float m_specularEnvScale;           //!< [0 - 1.0] amount of specular scale from env probe
     float m_specularPrimary;            //!< [0 - 1.0] primary specular factor
@@ -184,14 +201,15 @@ public enum GFSDK_HAIR_TEXTURE_TYPE
 public unsafe class HairWorksIntegration
 {
     [DllImport ("HairWorksIntegration")] public static extern hwAssetID     hwLoadAssetFromFile(string path);
-    [DllImport ("HairWorksIntegration")] public static extern bool          hwDeleteAsset(hwAssetID aid);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwReleaseAsset(hwAssetID aid);
 
     [DllImport ("HairWorksIntegration")] public static extern hwInstanceID hwCreateInstance(hwAssetID aid);
-    [DllImport ("HairWorksIntegration")] public static extern bool hwDeleteInstance(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern bool hwReleaseInstance(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern void hwGetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void hwSetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void hwUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, Matrix4x4 *matrices);
 
-    [DllImport ("HairWorksIntegration")] public static extern float hwSetViewProjectionMatrix(ref Matrix4x4 view, ref Matrix4x4 proj);
+    [DllImport ("HairWorksIntegration")] public static extern float hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fiv);
     [DllImport ("HairWorksIntegration")] public static extern void hwRender(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern void hwRenderShadow(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern float hwStepSimulation(float dt);

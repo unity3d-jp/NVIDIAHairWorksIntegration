@@ -15,10 +15,10 @@ public:
     bool finalize();
 
     hwAssetID       loadAssetFromFile(const std::string &path);
-    bool            deleteAsset(hwAssetID aid);
+    bool            releaseAsset(hwAssetID aid);
 
     hwInstanceID    createInstance(hwAssetID aid);
-    bool            deleteInstance(hwInstanceID iid);
+    bool            releaseInstance(hwInstanceID iid);
 
     void getDescriptor(hwInstanceID iid, hwHairDescriptor &desc) const;
     void setDescriptor(hwInstanceID iid, const hwHairDescriptor &desc);
@@ -31,8 +31,14 @@ public:
     void stepSimulation(float dt);
 
 private:
-    typedef std::map<std::string, hwAssetID>    AssetCont;
-    typedef std::vector<hwInstanceID>           InstanceCont;
+    struct Asset {
+        hwAssetID id;
+        int ref_count;
+        Asset() : id(0), ref_count(0) {}
+    };
+    typedef std::map<std::string, Asset>    AssetCont;
+    typedef std::vector<hwInstanceID>       InstanceCont;
+
     hwSDK           *m_sdk;
     AssetCont       m_assets;
     InstanceCont    m_instances;
