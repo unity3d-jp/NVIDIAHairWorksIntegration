@@ -105,7 +105,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PostBuildEvent>
-      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\HairWorksIntegration\Plugins\x86_64\
+      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
@@ -121,7 +121,7 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PostBuildEvent>
-      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\HairWorksIntegration\Plugins\x86_64\
+      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
@@ -137,7 +137,7 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Master|x64'">
     <PostBuildEvent>
-      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\HairWorksIntegration\Plugins\x86_64\
+      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
