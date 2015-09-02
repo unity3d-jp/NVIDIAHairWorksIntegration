@@ -55,7 +55,7 @@ hwCLinkage hwExport void UnityRenderEvent(int eventID)
 }
 
 
-hwLogCallback g_hwLogCallback;
+hwThreadLocal hwLogCallback g_hwLogCallback;
 
 #ifdef hwDebug
 void hwDebugLogImpl(const char* fmt, ...)
@@ -188,6 +188,12 @@ hwCLinkage hwExport void hwInstanceSetDescriptor(hwInstanceID iid, const hwHairD
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceSetDescriptor(iid, *desc);
+    }
+}
+hwCLinkage hwExport void hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->instanceSetTexture(iid, type, tex);
     }
 }
 hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices)

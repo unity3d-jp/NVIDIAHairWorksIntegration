@@ -81,6 +81,7 @@ public:
     void            instanceRelease(hwInstanceID iid);
     void            instanceGetDescriptor(hwInstanceID iid, hwHairDescriptor &desc) const;
     void            instanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor &desc);
+    void            instanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex);
     void            instanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);
 
     void setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov);
@@ -98,12 +99,16 @@ private:
     void setShaderImpl(hwShaderID sid);
     void renderImpl(hwInstanceID iid);
     void renderShadowImpl(hwInstanceID iid);
+    hwSRV* getSRV(hwTexture *tex);
+    hwRTV* getRTV(hwTexture *tex);
 
 private:
-    typedef std::vector<ShaderHolder>   ShaderCont;
-    typedef std::vector<AssetHolder>    AssetCont;
-    typedef std::vector<InstanceHolder> InstanceCont;
-    typedef std::vector<char>           DrawCommands;
+    typedef std::vector<ShaderHolder>       ShaderCont;
+    typedef std::vector<AssetHolder>        AssetCont;
+    typedef std::vector<InstanceHolder>     InstanceCont;
+    typedef std::vector<char>               DrawCommands;
+    typedef std::map<hwTexture*, hwSRV*>    SRVTable;
+    typedef std::map<hwTexture*, hwRTV*>    RTVTable;
 
     ID3D11Device        *m_d3ddev;
     ID3D11DeviceContext *m_d3dctx;
@@ -112,6 +117,8 @@ private:
     AssetCont           m_assets;
     InstanceCont        m_instances;
     DrawCommands        m_commands;
+    SRVTable            m_srvtable;
+    RTVTable            m_rtvtable;
 };
 
 #endif // hwContext_h

@@ -226,6 +226,15 @@ void hwContext::instanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor &
     }
 }
 
+void hwContext::instanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex)
+{
+    auto *srv = getSRV(tex);
+    if (!srv || m_sdk->SetTextureSRV((GFSDK_HairInstanceID)iid, type, srv) != GFSDK_HAIR_RETURN_OK)
+    {
+        hwDebugLog("GFSDK_HairSDK::SetTextureSRV(%d, %d) failed.\n", iid, type);
+    }
+}
+
 void hwContext::instanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices)
 {
     if (m_sdk->UpdateSkinningMatrices((GFSDK_HairInstanceID)iid, num_matrices, (const gfsdk_float4x4*)matrices) != GFSDK_HAIR_RETURN_OK)
@@ -274,6 +283,39 @@ void hwContext::renderShadow(hwInstanceID iid)
     if (iid == hwNullID) { return; }
     DrawCommand c = { CID_RenderShadow, iid};
     pushDrawCommand(c);
+}
+
+
+hwSRV* hwContext::getSRV(hwTexture *tex)
+{
+    {
+        auto i = m_srvtable.find(tex);
+        if (i != m_srvtable.end()) {
+            return i->second;
+        }
+    }
+
+    hwSRV *ret = nullptr;
+    if (SUCCEEDED(m_d3ddev->CreateShaderResourceView(tex, nullptr, &ret))) {
+        m_srvtable[tex] = ret;
+    }
+    return ret;
+}
+
+hwRTV* hwContext::getRTV(hwTexture *tex)
+{
+    {
+        auto i = m_rtvtable.find(tex);
+        if (i != m_rtvtable.end()) {
+            return i->second;
+        }
+    }
+
+    hwRTV *ret = nullptr;
+    if (SUCCEEDED(m_d3ddev->CreateRenderTargetView(tex, nullptr, &ret))) {
+        m_rtvtable[tex] = ret;
+    }
+    return ret;
 }
 
 

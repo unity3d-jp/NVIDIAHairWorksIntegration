@@ -184,7 +184,7 @@ public unsafe struct hwDescriptor
     public int m_colorizeMode;               //!< [GFSDK_HAIR_COLORIZE_MODE] colorize hair based on various terms. See GFSDK_HAIR_COLORIZE_MODE.
 
     // texture control
-    public fixed int m_textureChannels[(int)GFSDK_HAIR_TEXTURE_TYPE.GFSDK_HAIR_NUM_TEXTURES]; //!< texture chanel for each control textures.  
+    public fixed int m_textureChannels[(int)hwTextureType.NUM_TEXTURES]; //!< texture chanel for each control textures.  
 
     // model to world transform
     public Matrix4x4 m_modelToWorld;              // render time transformation to offset hair from its simulated position
@@ -344,7 +344,7 @@ public unsafe struct hwDescriptor
 
             fixed(int *p = m_textureChannels)
             {
-                for (int i = 0; i < (int)GFSDK_HAIR_TEXTURE_TYPE.GFSDK_HAIR_NUM_TEXTURES; i++)
+                for (int i = 0; i < (int)hwTextureType.NUM_TEXTURES; i++)
                 {
                     p[i] = 0;
                 }
@@ -354,24 +354,24 @@ public unsafe struct hwDescriptor
     }
 }
 
-public enum GFSDK_HAIR_TEXTURE_TYPE
+public enum hwTextureType
 {
-    GFSDK_HAIR_TEXTURE_DENSITY, //<! hair density map [ shape control ]
-    GFSDK_HAIR_TEXTURE_ROOT_COLOR, //<! color at the hair root [ shading ]
-    GFSDK_HAIR_TEXTURE_TIP_COLOR, //<! color at the hair tip [ shading ]
-    GFSDK_HAIR_TEXTURE_WIDTH,  //<! width  [ shape control ]
-    GFSDK_HAIR_TEXTURE_STIFFNESS,  //<! stiffness control [ simulation ]
-    GFSDK_HAIR_TEXTURE_ROOT_STIFFNESS, //<! stiffness control for root stiffness [simulation]
-    GFSDK_HAIR_TEXTURE_CLUMP_SCALE,  //<! clumpiness control [ shape control]
-    GFSDK_HAIR_TEXTURE_CLUMP_ROUNDNESS, //<! clumping noise [ shape control]
-    GFSDK_HAIR_TEXTURE_WAVE_SCALE, //<! waviness scale [ shape control ]
-    GFSDK_HAIR_TEXTURE_WAVE_FREQ, //<! waviness frequency [ shape control ]
-    GFSDK_HAIR_TEXTURE_STRAND, //<! texture along hair strand [ shading ]
-    GFSDK_HAIR_TEXTURE_LENGTH, //<! length control [shape control] 
-    GFSDK_HAIR_TEXTURE_SPECULAR, //<! specularity control [shading ] 
-    GFSDK_HAIR_TEXTURE_WEIGHTS, //!< weight texture for multiple material blending [control for all other textures]
+    DENSITY, //<! hair density map [ shape control ]
+    ROOT_COLOR, //<! color at the hair root [ shading ]
+    TIP_COLOR, //<! color at the hair tip [ shading ]
+    WIDTH,  //<! width  [ shape control ]
+    STIFFNESS,  //<! stiffness control [ simulation ]
+    ROOT_STIFFNESS, //<! stiffness control for root stiffness [simulation]
+    CLUMP_SCALE,  //<! clumpiness control [ shape control]
+    CLUMP_ROUNDNESS, //<! clumping noise [ shape control]
+    WAVE_SCALE, //<! waviness scale [ shape control ]
+    WAVE_FREQ, //<! waviness frequency [ shape control ]
+    STRAND, //<! texture along hair strand [ shading ]
+    LENGTH, //<! length control [shape control] 
+    SPECULAR, //<! specularity control [shading ] 
+    WEIGHTS, //!< weight texture for multiple material blending [control for all other textures]
 
-    GFSDK_HAIR_NUM_TEXTURES
+    NUM_TEXTURES
 };
 
 
@@ -391,6 +391,7 @@ public static unsafe class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern bool          hwInstanceRelease(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, System.IntPtr tex);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, Matrix4x4 *matrices);
 
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fov);

@@ -15,6 +15,7 @@ using namespace DirectX;
 
 #define hwCLinkage extern "C"
 #define hwExport __declspec(dllexport)
+#define hwThreadLocal __declspec(thread)
 
 #ifdef hwDebug
     void hwDebugLogImpl(const char* fmt, ...);

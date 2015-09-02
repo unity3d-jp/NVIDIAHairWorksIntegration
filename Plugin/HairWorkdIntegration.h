@@ -8,9 +8,12 @@ typedef int hwAssetID;
 typedef int hwInstanceID;
 typedef int hwShaderID;
 typedef GFSDK_HairInstanceDescriptor hwHairDescriptor;
+typedef GFSDK_HAIR_TEXTURE_TYPE hwTextureType;
 
 typedef ID3D11Device hwDevice;
 typedef ID3D11Texture2D hwTexture;
+typedef ID3D11ShaderResourceView hwSRV;
+typedef ID3D11RenderTargetView hwRTV;
 typedef XMMATRIX hwMatrix;
 
 typedef void(__stdcall *hwLogCallback)(const char *);
@@ -44,6 +47,7 @@ hwCLinkage hwExport void            hwInstanceRelease(hwInstanceID iid);
 hwCLinkage hwExport void            hwInstanceGetAssetID(hwInstanceID iid);
 hwCLinkage hwExport void            hwInstanceGetDescriptor(hwInstanceID iid, hwHairDescriptor *desc);
 hwCLinkage hwExport void            hwInstanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor *desc);
+hwCLinkage hwExport void            hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex);
 hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);
 
 hwCLinkage hwExport void            hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov);

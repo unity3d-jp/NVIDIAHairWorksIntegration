@@ -18,8 +18,11 @@ public class HairInstance : MonoBehaviour
     static HashSet<HairInstance> s_instances;
     static int s_nth_LateUpdate;
     static int s_nth_OnWillRenderObject;
+    static public Vector2 s_resolution_scale = Vector2.one;
+    static public RenderTexture s_framebuffer;
+    static public RenderTexture s_depthbuffer;
 
-    HashSet<HairInstance> GetInstances()
+    static public HashSet<HairInstance> GetInstances()
     {
         if (s_instances == null)
         {
@@ -78,7 +81,13 @@ public class HairInstance : MonoBehaviour
         {
             m_hair_asset = path_to_apx;
             m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);
+            HairWorksIntegration.hwInstanceGetDescriptor(m_iid, ref m_params);
         }
+    }
+
+    public void AssignTexture(hwTextureType type, Texture2D tex)
+    {
+        HairWorksIntegration.hwInstanceSetTexture(m_iid, type, tex.GetNativeTexturePtr());
     }
 
 
@@ -105,6 +114,7 @@ public class HairInstance : MonoBehaviour
     void Update()
     {
         m_params.m_modelToWorld = GetComponent<Transform>().localToWorldMatrix;
+        HairWorksIntegration.hwInstanceSetDescriptor(m_iid, ref m_params);
 
         s_nth_LateUpdate = 0;
     }
@@ -159,5 +169,6 @@ public class HairInstance : MonoBehaviour
     void EndRender()
     {
         GL.IssuePluginEvent( HairWorksIntegration.hwGetFlushEventID() );
+        GL.InvalidateState();
     }
 }
