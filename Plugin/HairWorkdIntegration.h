@@ -8,9 +8,14 @@ typedef int hwAssetID;
 typedef int hwInstanceID;
 typedef int hwShaderID;
 typedef GFSDK_HairInstanceDescriptor hwHairDescriptor;
+
+typedef ID3D11Device hwDevice;
+typedef ID3D11Texture2D hwTexture;
 typedef XMMATRIX hwMatrix;
+
 typedef void(__stdcall *hwLogCallback)(const char *);
 #define hwNullID 0xFFFF
+#define hwFlushEventID 0x14840001
 
 class hwContext;
 
@@ -23,6 +28,7 @@ hwCLinkage hwExport void            UnityRenderEvent(int eventID);
 hwCLinkage hwExport bool            hwInitialize();
 hwCLinkage hwExport void            hwFinalize();
 hwCLinkage hwExport hwContext*      hwGetContext();
+hwCLinkage hwExport int             hwGetFlushEventID();
 hwCLinkage hwExport void            hwSetLogCallback(hwLogCallback cb);
 
 hwCLinkage hwExport hwShaderID      hwShaderLoadFromFile(const char *path);
@@ -41,7 +47,7 @@ hwCLinkage hwExport void            hwInstanceSetDescriptor(hwInstanceID iid, co
 hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);
 
 hwCLinkage hwExport void            hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov);
-hwCLinkage hwExport void            hwSetRenderTarget(void *framebuffer, void *depthbuffer);
+hwCLinkage hwExport void            hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
 hwCLinkage hwExport void            hwSetShader(hwShaderID sid);
 hwCLinkage hwExport void            hwRender(hwInstanceID iid);
 hwCLinkage hwExport void            hwRenderShadow(hwInstanceID iid);

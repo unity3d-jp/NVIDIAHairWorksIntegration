@@ -47,6 +47,11 @@ hwCLinkage hwExport void UnitySetGraphicsDevice(void* device, int deviceType, in
 
 hwCLinkage hwExport void UnityRenderEvent(int eventID)
 {
+    if (eventID == hwFlushEventID) {
+        if (auto ctx = hwGetContext()) {
+            ctx->flush();
+        }
+    }
 }
 
 
@@ -114,6 +119,11 @@ hwCLinkage hwExport hwContext* hwGetContext()
 {
     hwInitialize();
     return g_hwContext;
+}
+
+hwCLinkage hwExport int hwGetFlushEventID()
+{
+    return hwFlushEventID;
 }
 
 
@@ -195,7 +205,7 @@ hwCLinkage hwExport void hwSetViewProjection(const hwMatrix *view, const hwMatri
     }
 }
 
-hwCLinkage hwExport void hwSetRenderTarget(void *framebuffer, void *depthbuffer)
+hwCLinkage hwExport void hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setRenderTarget(framebuffer, depthbuffer);

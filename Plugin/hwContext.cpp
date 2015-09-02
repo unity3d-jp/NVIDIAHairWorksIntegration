@@ -37,9 +37,9 @@ hwSDK* hwContext::getSDK() const
     return m_sdk;
 }
 
-bool hwContext::initialize(const char *path_to_dll, void *d3d11_device)
+bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
 {
-    if (path_to_dll == nullptr || d3d11_device == nullptr) { return false; }
+    if (path_to_dll == nullptr || d3d_device == nullptr) { return false; }
     if (m_sdk != nullptr) { return true; }
 
     m_sdk = GFSDK_LoadHairSDK(path_to_dll, GFSDK_HAIRWORKS_VERSION);
@@ -51,7 +51,7 @@ bool hwContext::initialize(const char *path_to_dll, void *d3d11_device)
         return false;
     }
 
-    if (m_sdk->InitRenderResources((ID3D11Device*)d3d11_device) == GFSDK_HAIR_RETURN_OK) {
+    if (m_sdk->InitRenderResources((ID3D11Device*)d3d_device) == GFSDK_HAIR_RETURN_OK) {
         hwDebugLog("GFSDK_HairSDK::InitRenderResources() succeeded.\n");
     }
     else {
@@ -60,7 +60,7 @@ bool hwContext::initialize(const char *path_to_dll, void *d3d11_device)
         return false;
     }
 
-    m_d3ddev = (ID3D11Device*)d3d11_device;
+    m_d3ddev = (ID3D11Device*)d3d_device;
     m_d3ddev->GetImmediateContext(&m_d3dctx);
 
     return true;
@@ -235,12 +235,62 @@ void hwContext::instanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrice
 }
 
 
-void hwContext::setRenderTarget(void *framebuffer, void *depthbuffer)
+
+template<class T>
+void hwContext::pushDrawCommand(const T &c)
+{
+    const char *begin = (const char*)&c;
+    m_commands.insert(m_commands.end(), begin, begin+sizeof(T));
+}
+
+void hwContext::setRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer)
+{
+    DrawCommandRT c = { CID_SetRenderTarget, framebuffer, depthbuffer };
+    pushDrawCommand(c);
+}
+
+void hwContext::setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov)
+{
+    DrawCommandVP c = { CID_SetViewProjection, fov, view, proj };
+    pushDrawCommand(c);
+}
+
+void hwContext::setShader(hwShaderID sid)
+{
+    if (sid == hwNullID) { return; }
+    DrawCommand c = { CID_SetShader, sid };
+    pushDrawCommand(c);
+}
+
+void hwContext::render(hwInstanceID iid)
+{
+    if (iid == hwNullID) { return; }
+    DrawCommand c = { CID_Render, iid };
+    pushDrawCommand(c);
+}
+
+void hwContext::renderShadow(hwInstanceID iid)
+{
+    if (iid == hwNullID) { return; }
+    DrawCommand c = { CID_RenderShadow, iid};
+    pushDrawCommand(c);
+}
+
+
+void hwContext::setRenderTargetImpl(hwTexture *framebuffer, hwTexture *depthbuffer)
 {
     // todo
 }
 
-void hwContext::setShader(hwShaderID sid)
+void hwContext::setViewProjectionImpl(const hwMatrix &view, const hwMatrix &proj, float fov)
+{
+    if (m_sdk->SetViewProjection((const gfsdk_float4x4*)&view, (const gfsdk_float4x4*)&proj, GFSDK_HAIR_RIGHT_HANDED, fov) != GFSDK_HAIR_RETURN_OK)
+    {
+        hwDebugLog("GFSDK_HairSDK::SetViewProjection() failed.\n");
+    }
+}
+
+void hwContext::setShaderImpl(hwShaderID sid)
 {
     if (sid >= m_shaders.size()) { return; }
 
@@ -250,15 +300,7 @@ void hwContext::setShader(hwShaderID sid)
     }
 }
 
-void hwContext::setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov)
-{
-    if (m_sdk->SetViewProjection((const gfsdk_float4x4*)&view, (const gfsdk_float4x4*)&proj, GFSDK_HAIR_RIGHT_HANDED, fov) != GFSDK_HAIR_RETURN_OK)
-    {
-        hwDebugLog("GFSDK_HairSDK::SetViewProjection() failed.\n");
-    }
-}
-
-void hwContext::render(hwInstanceID iid)
+void hwContext::renderImpl(hwInstanceID iid)
 {
     if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid) != GFSDK_HAIR_RETURN_OK)
     {
@@ -266,13 +308,58 @@ void hwContext::render(hwInstanceID iid)
     }
 }
 
-void hwContext::renderShadow(hwInstanceID iid)
+void hwContext::renderShadowImpl(hwInstanceID iid)
 {
     auto settings = GFSDK_HairShaderSettings(false, true);
     if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid, &settings) != GFSDK_HAIR_RETURN_OK)
     {
         hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);
     }
+}
+
+void hwContext::flush()
+{
+    for (int i=0; i<m_commands.size(); ) {
+        CommandID cid = (CommandID&)m_commands[i];
+        switch (cid) {
+        case CID_SetViewProjection:
+        {
+            const auto c = (DrawCommandVP&)m_commands[i];
+            setViewProjectionImpl(c.view, c.proj, c.fov);
+            i += sizeof(c);
+            break;
+        }
+        case CID_SetRenderTarget:
+        {
+            const auto c = (DrawCommandRT&)m_commands[i];
+            setRenderTargetImpl(c.framebuffer, c.depthbuffer);
+            i += sizeof(c);
+            break;
+        }
+        case CID_SetShader:
+        {
+            const auto c = (DrawCommand&)m_commands[i];
+            setShaderImpl(c.arg);
+            i += sizeof(c);
+            break;
+        }
+        case CID_Render:
+        {
+            const auto c = (DrawCommand&)m_commands[i];
+            renderImpl(c.arg);
+            i += sizeof(c);
+            break;
+        }
+        case CID_RenderShadow:
+        {
+            const auto c = (DrawCommand&)m_commands[i];
+            renderShadowImpl(c.arg);
+            i += sizeof(c);
+            break;
+        }
+        }
+    }
+    m_commands.clear();
 }
 
 void hwContext::stepSimulation(float dt)

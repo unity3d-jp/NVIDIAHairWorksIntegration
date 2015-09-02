@@ -7,6 +7,8 @@ public class HairInstanceEditor : Editor
 {
     public override void OnInspectorGUI()
     {
+        DrawDefaultInspector();
+
         var t = target as HairInstance;
         if (GUILayout.Button("Select Hair Shader"))
         {

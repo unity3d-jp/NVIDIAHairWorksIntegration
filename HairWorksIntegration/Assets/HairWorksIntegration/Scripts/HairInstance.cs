@@ -32,7 +32,7 @@ public class HairInstance : MonoBehaviour
 
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
     public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
-    public hwDescriptor m_params;
+    public hwDescriptor m_params = hwDescriptor.default_value;
     hwShaderID m_sid = hwShaderID.NullID;
     hwAssetID m_aid = hwAssetID.NullID;
     hwInstanceID m_iid = hwInstanceID.NullID;
@@ -96,26 +96,22 @@ public class HairInstance : MonoBehaviour
         GetInstances().Remove(this);
     }
 
+    void Start()
+    {
+        LoadHairShader(m_hair_shader);
+        LoadHairAsset(m_hair_asset);
+    }
+
     void Update()
     {
+        m_params.m_modelToWorld = GetComponent<Transform>().localToWorldMatrix;
+
         s_nth_LateUpdate = 0;
-        if (!m_sid)
-        {
-            m_sid = HairWorksIntegration.hwShaderLoadFromFile(Application.streamingAssetsPath + "/" + m_hair_shader);
-        }
-        if (!m_aid)
-        {
-            m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + m_hair_asset);
-        }
-        if (!m_iid && m_aid)
-        {
-            m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);
-        }
     }
 
     void LateUpdate()
     {
-        if(s_nth_LateUpdate++==0)
+        if(s_nth_LateUpdate++ == 0)
         {
             HairWorksIntegration.hwStepSimulation(Time.deltaTime);
         }
@@ -123,14 +119,14 @@ public class HairInstance : MonoBehaviour
 
     void OnWillRenderObject()
     {
-        if(s_nth_OnWillRenderObject++==0)
+        if(s_nth_OnWillRenderObject++ == 0)
         {
             BeginRender();
             foreach (var a in GetInstances())
             {
                 a.Render();
             }
-            PostRender();
+            EndRender();
         }
     }
 
@@ -144,13 +140,24 @@ public class HairInstance : MonoBehaviour
 
     void BeginRender()
     {
+        var cam = Camera.current;
+        if(cam != null)
+        {
+            Matrix4x4 V = cam.worldToCameraMatrix;
+            Matrix4x4 P = GL.GetGPUProjectionMatrix(cam.projectionMatrix, true);
+            float fov = cam.fieldOfView;
+            HairWorksIntegration.hwSetViewProjection(ref V, ref P, fov);
+        }
     }
 
     void Render()
     {
+        HairWorksIntegration.hwSetShader(m_sid);
+        HairWorksIntegration.hwRender(m_iid);
     }
 
-    void PostRender()
+    void EndRender()
     {
+        GL.IssuePluginEvent( HairWorksIntegration.hwGetFlushEventID() );
     }
 }
