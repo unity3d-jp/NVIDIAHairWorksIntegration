@@ -11,8 +11,8 @@ Hair Works は基本的に再配布が認められていないため、各自個
 1.  このパッケージをプロジェクトへインポート
 2.  Hair Works SDK を入手
   * https://developer.nvidia.com/hairworks ここの Download -> HairWorks 1.1
-  * ダウンロードには NVIDIA の開発者アカウントが必要です。アカウント作成は無料ですが、申請から 1 日前後時間がかかります。
+  * ダウンロードには NVIDIA の開発者アカウントが必要です。アカウント作成は無料ですが、申請から作成されるまでに 1 日前後時間がかかります。
 3.  Hair Works SDK に含まれる必要なデータをプロジェクトへインポート
-  * HairWorks-r1-1-212-distro/bin/win64/GFSDK_HairWorks.win64.dll を Assets/StreamingAssets/HairWorksIntegration の中にコピー
+  * HairWorks-r1-1-212-distro/bin/win64/GFSDK_HairWorks.win64.dll を Assets/HairWorksIntegration/Plugins の中にコピー
 
 また、プラグインをビルドしたい場合は HairWorks-r1-1-212-distro ディレクトリをまるごと Plugin/Externals の中にコピーしてから Plugin/HairWorksIntegration.sln を開いてビルドします。

@@ -10,6 +10,7 @@ using UnityEditor;
 #endif
 
 
+[AddComponentMenu("Hair Works Integration/Hair Instance")]
 [RequireComponent(typeof(Renderer))]
 public class HairInstance : MonoBehaviour
 {
@@ -29,35 +30,86 @@ public class HairInstance : MonoBehaviour
     #endregion
 
 
-    public string m_hair_asset;
-    public string m_hair_shader;
+    public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
+    public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
     public hwDescriptor m_params;
+    hwShaderID m_sid = hwShaderID.NullID;
+    hwAssetID m_aid = hwAssetID.NullID;
+    hwInstanceID m_iid = hwInstanceID.NullID;
 
-    hwAssetID m_asset_id = hwAssetID.NullID;
-    hwInstanceID m_instance_id = hwInstanceID.NullID;
+
+    public int shader_id { get { return m_sid; } }
+    public int asset_id { get { return m_aid; } }
+    public int instance_id { get { return m_iid; } }
+
+
+    public void LoadHairShader(string path_to_cso)
+    {
+        // release existing shader
+        if (m_sid)
+        {
+            HairWorksIntegration.hwShaderRelease(m_sid);
+            m_sid = hwShaderID.NullID;
+        }
+
+        // load shader
+        if (m_sid = HairWorksIntegration.hwShaderLoadFromFile(Application.streamingAssetsPath + "/" + path_to_cso))
+        {
+            m_hair_shader = path_to_cso;
+        }
+    }
+
+    public void LoadHairAsset(string path_to_apx)
+    {
+        // release existing instance & asset
+        if (m_iid)
+        {
+            HairWorksIntegration.hwInstanceRelease(m_iid);
+            m_iid = hwInstanceID.NullID;
+        }
+        if (m_aid)
+        {
+            HairWorksIntegration.hwAssetRelease(m_aid);
+            m_aid = hwAssetID.NullID;
+        }
+
+        // load & create instance
+        if(m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx))
+        {
+            m_hair_asset = path_to_apx;
+            m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);
+        }
+    }
+
+
 
     void Awake()
     {
+        HairWorksIntegration.hwSetLogCallback();
         GetInstances().Add(this);
     }
 
     void OnDestroy()
     {
-        HairWorksIntegration.hwInstanceRelease(m_instance_id);
-        HairWorksIntegration.hwAssetRelease(m_asset_id);
+        HairWorksIntegration.hwInstanceRelease(m_iid);
+        HairWorksIntegration.hwAssetRelease(m_aid);
         GetInstances().Remove(this);
     }
 
     void Update()
     {
         s_nth_LateUpdate = 0;
-        if (!m_asset_id)
+        if (!m_sid)
         {
-            m_asset_id = HairWorksIntegration.hwAssetLoadFromFile(m_hair_asset);
+            m_sid = HairWorksIntegration.hwShaderLoadFromFile(Application.streamingAssetsPath + "/" + m_hair_shader);
         }
-        if (m_asset_id && !m_instance_id)
+        if (!m_aid)
         {
-            m_instance_id = HairWorksIntegration.hwInstanceCreate(m_asset_id);
+            m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + m_hair_asset);
+        }
+        if (!m_iid && m_aid)
+        {
+            m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);
         }
     }
 

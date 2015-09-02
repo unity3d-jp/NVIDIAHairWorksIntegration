@@ -2,6 +2,8 @@
 #include "HairWorkdIntegration.h"
 #include "hwContext.h"
 
+#define hwSDKDLL "GFSDK_HairWorks.win64.dll"
+
 ID3D11Device *g_d3d11_device = nullptr;
 hwContext *g_hwContext = nullptr;
 
@@ -48,6 +50,7 @@ hwCLinkage hwExport void UnityRenderEvent(int eventID)
 }
 
 
+hwLogCallback g_hwLogCallback;
 
 #ifdef hwDebug
 void hwDebugLogImpl(const char* fmt, ...)
@@ -55,27 +58,44 @@ void hwDebugLogImpl(const char* fmt, ...)
     va_list vl;
     va_start(vl, fmt);
 
-#ifdef hwWindows
     char buf[2048];
     vsprintf(buf, fmt, vl);
+#ifdef hwWindows
     ::OutputDebugStringA(buf);
 #else // hwWindows
-    vprintf(fmt, vl);
+    printf(buf);
 #endif // hwWindows
+    if (g_hwLogCallback) { g_hwLogCallback(buf); }
 
     va_end(vl);
 }
 #endif // hwDebug
 
 
-hwCLinkage hwExport bool hwInitialize(const char *path_to_dll)
+
+hwCLinkage hwExport bool hwInitialize()
 {
     if (g_hwContext != nullptr) {
         return true;
     }
 
+    char path[MAX_PATH];
+    {
+        // get path to this module
+        HMODULE mod = 0;
+        ::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)&hwInitialize, &mod);
+        DWORD size = ::GetModuleFileNameA(mod, path, sizeof(path));
+        for (int i = size - 1; i >= 0; --i) {
+            if (path[i] == '\\') {
+                path[i+1] = '\0';
+                std::strncat(path, hwSDKDLL, MAX_PATH);
+                break;
+            }
+        }
+    }
+
     g_hwContext = new hwContext();
-    if (g_hwContext->initialize(path_to_dll, g_d3d11_device)) {
+    if (g_hwContext->initialize(path, g_d3d11_device)) {
         return true;
     }
     else {
@@ -92,10 +112,16 @@ hwCLinkage hwExport void hwFinalize()
 
 hwCLinkage hwExport hwContext* hwGetContext()
 {
+    hwInitialize();
     return g_hwContext;
 }
 
 
+
+hwCLinkage hwExport void hwSetLogCallback(hwLogCallback cb)
+{
+    g_hwLogCallback = cb;
+}
 
 hwCLinkage hwExport hwShaderID hwShaderLoadFromFile(const char *path)
 {

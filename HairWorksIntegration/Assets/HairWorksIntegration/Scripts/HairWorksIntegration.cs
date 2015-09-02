@@ -211,8 +211,11 @@ public enum GFSDK_HAIR_TEXTURE_TYPE
 };
 
 
-public unsafe class HairWorksIntegration
+public static unsafe class HairWorksIntegration
 {
+    public delegate void hwLogCallback(System.IntPtr cstr);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwSetLogCallback(hwLogCallback cb);
+
     [DllImport ("HairWorksIntegration")] public static extern hwShaderID    hwShaderLoadFromFile(string path);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwShaderID sid);
 
@@ -231,4 +234,15 @@ public unsafe class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern void          hwRender(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwRenderShadow(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwStepSimulation(float dt);
+
+    static void LogCallback(System.IntPtr cstr)
+    {
+        Debug.Log(Marshal.PtrToStringAnsi(cstr));
+    }
+
+    public static void hwSetLogCallback()
+    {
+        hwSetLogCallback(LogCallback);
+    }
+
 }

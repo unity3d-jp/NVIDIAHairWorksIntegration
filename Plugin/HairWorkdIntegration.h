@@ -9,6 +9,7 @@ typedef int hwInstanceID;
 typedef int hwShaderID;
 typedef GFSDK_HairInstanceDescriptor hwHairDescriptor;
 typedef XMMATRIX hwMatrix;
+typedef void(__stdcall *hwLogCallback)(const char *);
 #define hwNullID 0xFFFF
 
 class hwContext;
@@ -19,10 +20,10 @@ hwCLinkage hwExport void            UnitySetGraphicsDevice(void* device, int dev
 hwCLinkage hwExport void            UnityRenderEvent(int eventID);
 
 
-hwCLinkage hwExport bool            hwInitialize(const char *path_to_dll);
+hwCLinkage hwExport bool            hwInitialize();
 hwCLinkage hwExport void            hwFinalize();
 hwCLinkage hwExport hwContext*      hwGetContext();
-
+hwCLinkage hwExport void            hwSetLogCallback(hwLogCallback cb);
 
 hwCLinkage hwExport hwShaderID      hwShaderLoadFromFile(const char *path);
 hwCLinkage hwExport void            hwShaderRelease(hwShaderID sid);
