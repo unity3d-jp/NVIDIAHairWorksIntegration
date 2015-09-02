@@ -2,10 +2,8 @@
 #include <map>
 #include <vector>
 #include <memory>
-#include <thread>
-#include <mutex>
 #include <functional>
-#include <atomic>
+#include <fstream>
 #include <cstdint>
 
 #include <d3d11.h>

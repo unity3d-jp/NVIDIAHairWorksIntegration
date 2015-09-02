@@ -9,6 +9,19 @@ using UnityEditor;
 #endif
 
 [System.Serializable]
+public struct hwShaderID
+{
+    public static hwShaderID NullID = new hwShaderID(0xFFFF);
+
+    public int id;
+
+    public hwShaderID(int v) { this.id = v; }
+    public static implicit operator hwShaderID(int v) { return new hwShaderID(v); }
+    public static implicit operator int (hwShaderID v) { return v.id; }
+    public static implicit operator bool (hwShaderID v) { return v.id != 0xFFFF; }
+}
+
+[System.Serializable]
 public struct hwAssetID
 {
     public static hwAssetID NullID = new hwAssetID(0xFFFF);
@@ -200,17 +213,22 @@ public enum GFSDK_HAIR_TEXTURE_TYPE
 
 public unsafe class HairWorksIntegration
 {
-    [DllImport ("HairWorksIntegration")] public static extern hwAssetID     hwLoadAssetFromFile(string path);
-    [DllImport ("HairWorksIntegration")] public static extern bool          hwReleaseAsset(hwAssetID aid);
+    [DllImport ("HairWorksIntegration")] public static extern hwShaderID    hwShaderLoadFromFile(string path);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwShaderID sid);
 
-    [DllImport ("HairWorksIntegration")] public static extern hwInstanceID hwCreateInstance(hwAssetID aid);
-    [DllImport ("HairWorksIntegration")] public static extern bool hwReleaseInstance(hwInstanceID iid);
-    [DllImport ("HairWorksIntegration")] public static extern void hwGetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
-    [DllImport ("HairWorksIntegration")] public static extern void hwSetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
-    [DllImport ("HairWorksIntegration")] public static extern void hwUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, Matrix4x4 *matrices);
+    [DllImport ("HairWorksIntegration")] public static extern hwAssetID     hwAssetLoadFromFile(string path);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwAssetID aid);
 
-    [DllImport ("HairWorksIntegration")] public static extern float hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fiv);
-    [DllImport ("HairWorksIntegration")] public static extern void hwRender(hwInstanceID iid);
-    [DllImport ("HairWorksIntegration")] public static extern void hwRenderShadow(hwInstanceID iid);
-    [DllImport ("HairWorksIntegration")] public static extern float hwStepSimulation(float dt);
+    [DllImport ("HairWorksIntegration")] public static extern hwInstanceID  hwInstanceCreate(hwAssetID aid);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwInstanceRelease(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, Matrix4x4 *matrices);
+
+    [DllImport ("HairWorksIntegration")] public static extern void          hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fiv);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwSetRenderTarget(System.IntPtr framebuffer, System.IntPtr depthbuffer);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwSetShader(hwShaderID sid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwRender(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwRenderShadow(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwStepSimulation(float dt);
 }

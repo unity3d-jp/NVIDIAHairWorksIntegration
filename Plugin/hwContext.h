@@ -5,6 +5,32 @@
 class hwContext
 {
 public:
+    struct ShaderHolder
+    {
+        std::string path;
+        hwShaderID id;
+        int ref_count;
+        ID3D11PixelShader *shader;
+        ShaderHolder() : id(hwNullID), ref_count(0), shader(nullptr) {}
+    };
+
+    struct AssetHolder
+    {
+        std::string path;
+        hwAssetID id;
+        int ref_count;
+        AssetHolder() : id(hwNullID), ref_count(0) {}
+    };
+
+    struct InstanceHolder
+    {
+        hwInstanceID id;
+        hwAssetID aid;
+        InstanceHolder() : id(hwNullID), aid(hwNullID) {}
+    };
+
+
+public:
     hwContext();
     ~hwContext();
 
@@ -12,38 +38,41 @@ public:
     hwSDK* getSDK() const;
 
     bool initialize(const char *path_to_dll, void *d3d11_device);
-    bool finalize();
+    void finalize();
 
-    hwAssetID       loadAssetFromFile(const std::string &path);
-    bool            releaseAsset(hwAssetID aid);
+    hwShaderID      shaderLoadFromFile(const std::string &path);
+    void            shaderRelease(hwShaderID aid);
 
-    hwInstanceID    createInstance(hwAssetID aid);
-    bool            releaseInstance(hwInstanceID iid);
+    hwAssetID       assetLoadFromFile(const std::string &path);
+    void            assetRelease(hwAssetID aid);
 
-    void getDescriptor(hwInstanceID iid, hwHairDescriptor &desc) const;
-    void setDescriptor(hwInstanceID iid, const hwHairDescriptor &desc);
-    void updateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);
+    hwInstanceID    instanceCreate(hwAssetID aid);
+    void            instanceRelease(hwInstanceID iid);
+    void            instanceGetDescriptor(hwInstanceID iid, hwHairDescriptor &desc) const;
+    void            instanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor &desc);
+    void            instanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);
 
-    void setRenderTarget(void *framebuffer, void *depthbuffer);
     void setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov);
+    void setRenderTarget(void *framebuffer, void *depthbuffer);
+    void setShader(hwShaderID sid);
     void render(hwInstanceID iid);
     void renderShadow(hwInstanceID iid);
     void stepSimulation(float dt);
 
-private:
-    struct Asset {
-        hwAssetID id;
-        int ref_count;
-        Asset() : id(0), ref_count(0) {}
-    };
-    typedef std::map<std::string, Asset>    AssetCont;
-    typedef std::vector<hwInstanceID>       InstanceCont;
 
-    hwSDK           *m_sdk;
-    AssetCont       m_assets;
-    InstanceCont    m_instances;
-    hwMatrix        m_view;
-    hwMatrix        m_projection;
+private:
+    typedef std::vector<ShaderHolder>   ShaderCont;
+    typedef std::vector<AssetHolder>    AssetCont;
+    typedef std::vector<InstanceHolder> InstanceCont;
+
+    ID3D11Device        *m_d3ddev;
+    ID3D11DeviceContext *m_d3dctx;
+    hwSDK               *m_sdk;
+    ShaderCont          m_shaders;
+    AssetCont           m_assets;
+    InstanceCont        m_instances;
+    hwMatrix            m_view;
+    hwMatrix            m_projection;
 };
 
 #endif // hwContext_h

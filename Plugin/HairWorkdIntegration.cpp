@@ -97,55 +97,67 @@ hwCLinkage hwExport hwContext* hwGetContext()
 
 
 
-
-hwCLinkage hwExport hwAssetID hwLoadAssetFromFile(const char *path)
+hwCLinkage hwExport hwShaderID hwShaderLoadFromFile(const char *path)
 {
-    if (path == nullptr) { return hwNullID; }
+    if (path == nullptr || path[0] == '\0') { return hwNullID; }
     if (auto ctx = hwGetContext()) {
-        return ctx->loadAssetFromFile(path);
+        return ctx->shaderLoadFromFile(path);
     }
     return hwNullID;
 }
-
-hwCLinkage hwExport bool hwReleaseAsset(hwAssetID aid)
+hwCLinkage hwExport void hwShaderRelease(hwShaderID sid)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->releaseAsset(aid);
+        ctx->shaderRelease(sid);
     }
-    return false;
 }
 
 
-hwCLinkage hwExport hwInstanceID hwCreateInstance(hwAssetID aid)
+hwCLinkage hwExport hwAssetID hwAssetLoadFromFile(const char *path)
 {
+    if (path == nullptr || path[0]=='\0') { return hwNullID; }
     if (auto ctx = hwGetContext()) {
-        return ctx->createInstance(aid);
+        return ctx->assetLoadFromFile(path);
     }
     return hwNullID;
 }
-hwCLinkage hwExport bool hwReleaseInstance(hwInstanceID iid)
+hwCLinkage hwExport void hwAssetRelease(hwAssetID aid)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->releaseInstance(iid);
-    }
-    return false;
-}
-hwCLinkage hwExport void hwGetDescriptor(hwInstanceID iid, hwHairDescriptor *desc)
-{
-    if (auto ctx = hwGetContext()) {
-        return ctx->getDescriptor(iid, *desc);
+        ctx->assetRelease(aid);
     }
 }
-hwCLinkage hwExport void hwSetDescriptor(hwInstanceID iid, const hwHairDescriptor *desc)
+
+
+hwCLinkage hwExport hwInstanceID hwInstanceCreate(hwAssetID aid)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->setDescriptor(iid, *desc);
+        return ctx->instanceCreate(aid);
+    }
+    return hwNullID;
+}
+hwCLinkage hwExport void hwInstanceRelease(hwInstanceID iid)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->instanceRelease(iid);
     }
 }
-hwCLinkage hwExport void hwUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices)
+hwCLinkage hwExport void hwInstanceGetDescriptor(hwInstanceID iid, hwHairDescriptor *desc)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->updateSkinningMatrices(iid, num_matrices, matrices);
+        ctx->instanceGetDescriptor(iid, *desc);
+    }
+}
+hwCLinkage hwExport void hwInstanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor *desc)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->instanceSetDescriptor(iid, *desc);
+    }
+}
+hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->instanceUpdateSkinningMatrices(iid, num_matrices, matrices);
     }
 }
 
@@ -153,32 +165,41 @@ hwCLinkage hwExport void hwUpdateSkinningMatrices(hwInstanceID iid, int num_matr
 hwCLinkage hwExport void hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->setViewProjection(*view, *proj, fov);
+        ctx->setViewProjection(*view, *proj, fov);
     }
 }
+
 hwCLinkage hwExport void hwSetRenderTarget(void *framebuffer, void *depthbuffer)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->setRenderTarget(framebuffer, depthbuffer);
+        ctx->setRenderTarget(framebuffer, depthbuffer);
     }
 }
+
+hwCLinkage hwExport void hwSetShader(hwShaderID sid)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->setShader(sid);
+    }
+}
+
 hwCLinkage hwExport void hwRender(hwInstanceID iid)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->render(iid);
+        ctx->render(iid);
     }
 }
+
 hwCLinkage hwExport void hwRenderShadow(hwInstanceID iid)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->renderShadow(iid);
+        ctx->renderShadow(iid);
     }
 }
+
 hwCLinkage hwExport void hwStepSimulation(float dt)
 {
     if (auto ctx = hwGetContext()) {
-        return ctx->stepSimulation(dt);
+        ctx->stepSimulation(dt);
     }
 }
-
-

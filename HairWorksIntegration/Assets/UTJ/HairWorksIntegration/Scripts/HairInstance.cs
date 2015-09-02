@@ -43,8 +43,8 @@ public class HairInstance : MonoBehaviour
 
     void OnDestroy()
     {
-        HairWorksIntegration.hwReleaseInstance(m_instance_id);
-        HairWorksIntegration.hwReleaseAsset(m_asset_id);
+        HairWorksIntegration.hwInstanceRelease(m_instance_id);
+        HairWorksIntegration.hwAssetRelease(m_asset_id);
         GetInstances().Remove(this);
     }
 
@@ -53,11 +53,11 @@ public class HairInstance : MonoBehaviour
         s_nth_LateUpdate = 0;
         if (!m_asset_id)
         {
-            m_asset_id = HairWorksIntegration.hwLoadAssetFromFile(m_hair_asset);
+            m_asset_id = HairWorksIntegration.hwAssetLoadFromFile(m_hair_asset);
         }
         if (m_asset_id && !m_instance_id)
         {
-            m_instance_id = HairWorksIntegration.hwCreateInstance(m_asset_id);
+            m_instance_id = HairWorksIntegration.hwInstanceCreate(m_asset_id);
         }
     }
 
