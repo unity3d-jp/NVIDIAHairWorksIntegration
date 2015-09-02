@@ -1,16 +1,18 @@
 # NVIDIA Hair Works Integration
 
-NVIDIA Hair Wors の Unity インテグレーションです。  
-使用にはやや複雑な手順が必要です。
+NVIDIA Hair Wors の Unity インテグレーションです。
+MAYA や 3ds Max でオーサリングした Hair データを Unity で表示させることができます。
+
+使用には少々面倒な手順が必要です。
 Hair Works は基本的に再配布が認められていないため、各自個別に NVIDIA の開発者サイトから入手してプロジェクトへインポートする必要があります。
 以下に手順を記します。  
+(現状 SDK はバージョン 1.1 を前提としています)
 
 1.  このパッケージをプロジェクトへインポート
 2.  Hair Works SDK を入手
   * https://developer.nvidia.com/hairworks ここの Download -> HairWorks 1.1
-  * ダウンロードには NVIDIA の開発者アカウントが必要です。アカウント作成は無料ですが承認が必要で、申請から 1 日前後時間がかかります。
+  * ダウンロードには NVIDIA の開発者アカウントが必要です。アカウント作成は無料ですが、申請から 1 日前後時間がかかります。
 3.  Hair Works SDK に含まれる必要なデータをプロジェクトへインポート
-  * 
+  * HairWorks-r1-1-212-distro/bin/win64/GFSDK_HairWorks.win64.dll を Assets/StreamingAssets/HairWorksIntegration の中にコピー
 
-また、プラグインをビルドしたい場合は Hair Works SDK を Plugin\Externals に置きます。  
-(Plugin\Externals\HairWorks-r1-1-212-distro\include に必要な .h ファイル群があれば大丈夫です)
+また、プラグインをビルドしたい場合は HairWorks-r1-1-212-distro ディレクトリをまるごと Plugin/Externals の中にコピーしてから Plugin/HairWorksIntegration.sln を開いてビルドします。
