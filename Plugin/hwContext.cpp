@@ -434,6 +434,7 @@ void hwContext::renderImpl(hwInstanceID iid)
     {
         hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);
     }
+    m_sdk->RenderVisualization((GFSDK_HairInstanceID)iid);
 }
 
 void hwContext::renderShadowImpl(hwInstanceID iid)

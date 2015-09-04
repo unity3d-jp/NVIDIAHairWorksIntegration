@@ -25,7 +25,6 @@ SamplerState texSampler: register(s0);
         return color;
 
     float3 hairColor = GFSDK_Hair_SampleHairColorTex(g_hairConstantBuffer, mat, texSampler, g_rootHairColorTexture, g_tipHairColorTexture, attr.texcoords);
-    //float3 hairColor = color.rgb;
 
 #define NUM_LIGHTS 4
     // todo: 
@@ -51,7 +50,7 @@ SamplerState texSampler: register(s0);
         float3 Ldir = normalize(lightDir[i]);
         color.rgb += GFSDK_Hair_ComputeHairShading(Lcolor, Ldir, attr, mat, hairColor.rgb);
     }
-    color.rgb = saturate(attr.N.xyz)*0.5+0.5;
+    //color.rgb = saturate(attr.N.xyz)*0.5+0.5;
     return color;
 }
 
