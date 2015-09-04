@@ -149,22 +149,21 @@ public class HairInstance : MonoBehaviour
 
     void OnWillRenderObject()
     {
-        if(s_nth_OnWillRenderObject++ == 0)
+        if (s_nth_OnWillRenderObject++ == 0)
         {
             BeginRender();
             foreach (var a in GetInstances())
             {
                 a.Render();
             }
-            EndRender();
         }
     }
 
     void OnRenderObject()
     {
+        EndRender();
         s_nth_OnWillRenderObject = 0;
     }
-
 
 
 

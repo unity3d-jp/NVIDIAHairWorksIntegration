@@ -19,12 +19,12 @@ SamplerState texSampler: register(s0);
     GFSDK_Hair_ShaderAttributes attr = GFSDK_Hair_GetShaderAttributes(input, g_hairConstantBuffer);
     GFSDK_Hair_Material mat = g_hairConstantBuffer.defaultMaterial;
 
-    float4 color = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    float4 color = float4(0.2f, 0.2f, 0.2f, 1.0f);
 
     if (GFSDK_Hair_VisualizeColor(g_hairConstantBuffer, mat, attr, color.rgb))
         return color;
 
-    float3 hairColor = GFSDK_Hair_SampleHairColorTex(g_hairConstantBuffer, mat, texSampler, g_rootHairColorTexture, g_tipHairColorTexture, attr.texcoords);
+    float3 hairColor = color * GFSDK_Hair_SampleHairColorTex(g_hairConstantBuffer, mat, texSampler, g_rootHairColorTexture, g_tipHairColorTexture, attr.texcoords);
 
 #define NUM_LIGHTS 4
     // todo: 
@@ -35,7 +35,6 @@ SamplerState texSampler: register(s0);
         float3(-1,-1,1),
         float3(-1,-1,1)
     };
-
     const float3 lightColor[NUM_LIGHTS] = 
     {
         float3(1,1,1),

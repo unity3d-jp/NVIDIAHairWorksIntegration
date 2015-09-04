@@ -23,13 +23,10 @@ public class HairInstanceEditor : Editor
 
         if (GUILayout.Button("Reload Hair Shader"))
         {
-            var path = EditorUtility.OpenFilePanel("Select compiled shader (.cso) file in StreamingAssets directory", Application.streamingAssetsPath, "cso");
             t.ReloadHairShader();
         }
-
         if (GUILayout.Button("Reload Hair Asset"))
         {
-            var path = EditorUtility.OpenFilePanel("Select apx file in StreamingAssets directory", Application.streamingAssetsPath, "apx");
             t.ReloadHairAsset();
         }
 

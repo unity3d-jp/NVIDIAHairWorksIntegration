@@ -13,6 +13,10 @@
 *.log
 *.tlog
 
+GFSDK_HairWorks.win64.dll*
+HairWorksIntegration/*.sln
+HairWorksIntegration/*.csproj
+
 _out/
 _tmp/
 Externals/
