@@ -47,6 +47,8 @@ public struct hwInstanceID
     public static implicit operator bool (hwInstanceID v) { return v.id != 0xFFFF; }
 }
 
+// 連続する bool の field があると C# と C++ で構造がズレるようなので Explicit で指定…
+// (C# だと bool でも 4 byte 刻みになるが、C++ だと 1 byte 刻みになる)
 [System.Serializable]
 [StructLayout(LayoutKind.Explicit)]
 public unsafe struct hwDescriptor
