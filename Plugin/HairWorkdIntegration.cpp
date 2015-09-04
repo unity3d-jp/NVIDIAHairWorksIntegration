@@ -156,11 +156,11 @@ hwCLinkage hwExport void hwShaderReload(hwShaderID sid)
 }
 
 
-hwCLinkage hwExport hwAssetID hwAssetLoadFromFile(const char *path)
+hwCLinkage hwExport hwAssetID hwAssetLoadFromFile(const char *path, const hwConversionSettings *conv)
 {
     if (path == nullptr || path[0]=='\0') { return hwNullID; }
     if (auto ctx = hwGetContext()) {
-        return ctx->assetLoadFromFile(path);
+        return ctx->assetLoadFromFile(path, *conv);
     }
     return hwNullID;
 }
@@ -183,6 +183,7 @@ hwCLinkage hwExport int hwAssetGetNumBones(hwAssetID aid)
     if (auto ctx = hwGetContext()) {
         return ctx->assetGetNumBones(aid);
     }
+    return 0;
 }
 
 hwCLinkage hwExport const char* hwAssetGetBoneName(hwAssetID aid, int nth)
@@ -190,6 +191,7 @@ hwCLinkage hwExport const char* hwAssetGetBoneName(hwAssetID aid, int nth)
     if (auto ctx = hwGetContext()) {
         return ctx->assetGetBoneName(aid, nth);
     }
+    return nullptr;
 }
 
 hwCLinkage hwExport void hwAssetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices)

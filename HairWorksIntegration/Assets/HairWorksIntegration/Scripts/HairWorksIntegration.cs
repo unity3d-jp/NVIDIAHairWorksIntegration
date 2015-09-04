@@ -361,6 +361,47 @@ public unsafe struct hwDescriptor
     }
 }
 
+[System.Serializable]
+public struct hwConversionSettings
+{
+    public hwUpAxis up_axis;
+    public hwHandedness handedness;
+    IntPtr matrix_ptr;
+    public float unit;
+
+
+    public static hwConversionSettings default_value
+    {
+        get
+        {
+            hwConversionSettings ret = new hwConversionSettings();
+            ret.initialize();
+            return ret;
+        }
+    }
+
+    void initialize()
+    {
+        up_axis = hwUpAxis.YUp;
+        handedness = hwHandedness.RightHanded;
+        unit = 0.0f;
+    }
+}
+
+public enum hwUpAxis
+{
+    Unknown,
+    YUp,
+    ZUp,
+}
+
+public enum hwHandedness
+{
+    Unknown,
+    RightHanded,
+    LeftHanded,
+}
+
 public enum hwTextureType
 {
     DENSITY, //<! hair density map [ shape control ]
@@ -392,7 +433,7 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwShaderID sid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderReload(hwShaderID sid);
 
-    [DllImport ("HairWorksIntegration")] public static extern hwAssetID     hwAssetLoadFromFile(string path);
+    [DllImport ("HairWorksIntegration")] public static extern hwAssetID     hwAssetLoadFromFile(string path, ref hwConversionSettings conv);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwAssetID aid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetReload(hwAssetID aid);
     [DllImport ("HairWorksIntegration")] public static extern int           hwAssetGetNumBones(hwAssetID aid);

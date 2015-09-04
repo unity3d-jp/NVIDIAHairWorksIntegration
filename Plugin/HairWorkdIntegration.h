@@ -8,6 +8,7 @@ typedef int hwAssetID;
 typedef int hwInstanceID;
 typedef int hwShaderID;
 typedef GFSDK_HairInstanceDescriptor hwHairDescriptor;
+typedef GFSDK_HairConversionSettings hwConversionSettings;
 typedef GFSDK_HAIR_TEXTURE_TYPE hwTextureType;
 
 typedef ID3D11Device hwDevice;
@@ -39,7 +40,7 @@ hwCLinkage hwExport hwShaderID      hwShaderLoadFromFile(const char *path);
 hwCLinkage hwExport void            hwShaderRelease(hwShaderID sid);
 hwCLinkage hwExport void            hwShaderReload(hwShaderID sid);
 
-hwCLinkage hwExport hwAssetID       hwAssetLoadFromFile(const char *path);
+hwCLinkage hwExport hwAssetID       hwAssetLoadFromFile(const char *path, const hwConversionSettings *conv);
 hwCLinkage hwExport void            hwAssetRelease(hwAssetID aid);
 hwCLinkage hwExport void            hwAssetReload(hwAssetID aid);
 hwCLinkage hwExport int             hwAssetGetNumBones(hwAssetID aid);

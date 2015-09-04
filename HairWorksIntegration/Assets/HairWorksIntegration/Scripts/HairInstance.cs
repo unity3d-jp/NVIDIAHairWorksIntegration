@@ -35,6 +35,7 @@ public class HairInstance : MonoBehaviour
 
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
     public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
+    public hwConversionSettings m_conversion = hwConversionSettings.default_value;
     public hwDescriptor m_params = hwDescriptor.default_value;
     public bool m_use_default_descriptor = true;
     hwShaderID m_sid = hwShaderID.NullID;
@@ -85,7 +86,7 @@ public class HairInstance : MonoBehaviour
         }
 
         // load & create instance
-        if(m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx))
+        if(m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx, ref m_conversion))
         {
             m_hair_asset = path_to_apx;
             m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);

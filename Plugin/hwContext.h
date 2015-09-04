@@ -75,7 +75,7 @@ public:
     void            shaderRelease(hwShaderID sid);
     void            shaderReload(hwShaderID sid);
 
-    hwAssetID       assetLoadFromFile(const std::string &path);
+    hwAssetID       assetLoadFromFile(const std::string &path, const hwConversionSettings &conv);
     void            assetRelease(hwAssetID aid);
     void            assetReload(hwAssetID aid);
     int             assetGetNumBones(hwAssetID aid) const;

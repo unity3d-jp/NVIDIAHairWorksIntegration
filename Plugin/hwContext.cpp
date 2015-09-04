@@ -166,7 +166,7 @@ void hwContext::shaderReload(hwShaderID sid)
 }
 
 
-hwAssetID hwContext::assetLoadFromFile(const std::string &path)
+hwAssetID hwContext::assetLoadFromFile(const std::string &path, const hwConversionSettings &conv)
 {
     {
         auto i = std::find_if(m_assets.begin(), m_assets.end(), [&](const AssetHolder &v) { return v.path == path; });
@@ -177,13 +177,7 @@ hwAssetID hwContext::assetLoadFromFile(const std::string &path)
     }
 
     hwAssetID aid = hwNullID;
-    GFSDK_HairConversionSettings conversionSettings;
-    {
-        conversionSettings.m_targetHandednessHint = GFSDK_HAIR_RIGHT_HANDED;
-        conversionSettings.m_targetUpAxisHint = GFSDK_HAIR_Y_UP;
-        conversionSettings.m_targetSceneUnit = 0.0f;
-    }
-    if (m_sdk->LoadHairAssetFromFile(path.c_str(), (GFSDK_HairAssetID*)&aid, nullptr, &conversionSettings) == GFSDK_HAIR_RETURN_OK) {
+    if (m_sdk->LoadHairAssetFromFile(path.c_str(), (GFSDK_HairAssetID*)&aid, nullptr, &conv) == GFSDK_HAIR_RETURN_OK) {
         m_assets.resize(std::max<int>(m_assets.size(), aid + 1));
         auto &v = m_assets[aid];
         v.path = path;
