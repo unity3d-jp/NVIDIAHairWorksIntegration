@@ -13,6 +13,8 @@
 *.log
 *.tlog
 
+_out/
+_tmp/
 Externals/
 Library/
 Temp/

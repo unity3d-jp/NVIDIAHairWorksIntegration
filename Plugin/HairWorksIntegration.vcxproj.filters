@@ -12,17 +12,11 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
-      <UniqueIdentifier>{6ef1885a-c8c1-4b84-9969-985e1ca205dd}</UniqueIdentifier>
+      <UniqueIdentifier>{01901c9a-fdc1-4bb1-8616-a6f08489ed91}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleCommon\HairWorksSampleSkinnedVertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleCommon\HairWorksSampleVisualizeShadow.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleCommon\HairWorksSampleSkinnedPixelShader.hlsl">
+    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleShading\HairWorksSampleShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

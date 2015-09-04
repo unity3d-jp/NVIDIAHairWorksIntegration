@@ -147,7 +147,7 @@ hwAssetID hwContext::assetLoadFromFile(const std::string &path)
 
     hwAssetID aid = hwNullID;
     if (m_sdk->LoadHairAssetFromFile(path.c_str(), (GFSDK_HairAssetID*)&aid) == GFSDK_HAIR_RETURN_OK) {
-        m_instances.resize(std::max<int>(m_instances.size(), aid));
+        m_assets.resize(std::max<int>(m_assets.size(), aid + 1));
         auto &v = m_assets[aid];
         v.path = path;
         v.id = aid;
@@ -180,7 +180,7 @@ hwInstanceID hwContext::instanceCreate(hwAssetID aid)
 {
     hwInstanceID iid = hwNullID;
     if (m_sdk->CreateHairInstance((GFSDK_HairAssetID)aid, (GFSDK_HairInstanceID*)&iid) == GFSDK_HAIR_RETURN_OK) {
-        m_instances.resize(std::max<int>(m_instances.size(), iid));
+        m_instances.resize(std::max<int>(m_instances.size(), iid + 1));
         auto &v = m_instances[iid];
         v.id = iid;
         v.aid = aid;

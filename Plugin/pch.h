@@ -10,7 +10,7 @@
 #include <directXMath.h>
 #include <GFSDK_HairWorks.h>
 
-using namespace DirectX;
+using namespace DirectX; // for DirectX Math
 
 
 #define hwCLinkage extern "C"
