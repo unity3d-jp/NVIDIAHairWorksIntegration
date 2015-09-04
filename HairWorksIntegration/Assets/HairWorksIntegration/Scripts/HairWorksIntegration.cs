@@ -47,151 +47,154 @@ public struct hwInstanceID
     public static implicit operator bool (hwInstanceID v) { return v.id != 0xFFFF; }
 }
 
-// 連続する bool の field があると C# と C++ で構造がズレるようなので Explicit で指定…
-// (C# だと bool でも 4 byte 刻みになるが、C++ だと 1 byte 刻みになる)
+// C# では bool は 1 byte なのに marshaling の際は 4 byte のデータに変換される。
+// (WinAPI の BOOL = 4 byte への変換を意図しているためらしい)
+// 一方 C++ の bool は、標準はサイズを規定していないものの、大抵 1 byte であり、VisualC++ でもそうなっている。
+// この違いを埋めるため、bool は [MarshalAs(UnmanagedType.I1)] で 1 byte データとして marshaling させる必要がある。
+// これを怠ると、bool が連続するフィールドがある struct は C# 側と C++ 側で構造がズレることになる。
+// ( http://stackoverflow.com/questions/9766403/structlayout-pack-1-doesnt-work-with-bool via @Tan90909090 )
 [System.Serializable]
-[StructLayout(LayoutKind.Explicit)]
 public unsafe struct hwDescriptor
 {
     // global controls
-    [FieldOffset(0)] public bool m_enable;                    //!< [true/false] whether to enable this hair. When disabled, hair will not cause any computation/rendering
+    [MarshalAs(UnmanagedType.I1)] public bool m_enable;                    //!< [true/false] whether to enable this hair. When disabled, hair will not cause any computation/rendering
 
     // hair geometry (density/width/length/clump) controls
-    [FieldOffset(4)] public float m_width;                  //!< [In Millimeters] hair width (thickness)
-    [FieldOffset(8)] public float m_widthNoise;             //!< [0 - 1.0] noise factor for hair width noise 
-    [FieldOffset(12)] public float m_widthRootScale;         //!< [0 - 1.0] scale factor for top side of the strand
-    [FieldOffset(16)] public float m_widthTipScale;          //!< [0 - 1.0] scale factor for bottom side of the strand
+    public float m_width;                  //!< [In Millimeters] hair width (thickness)
+    public float m_widthNoise;             //!< [0 - 1.0] noise factor for hair width noise 
+    public float m_widthRootScale;         //!< [0 - 1.0] scale factor for top side of the strand
+    public float m_widthTipScale;          //!< [0 - 1.0] scale factor for bottom side of the strand
 
-    [FieldOffset(20)] public float m_clumpNoise;             //!< [0 - 1.0] probability of each hair gets clumped (0 = all hairs get clumped, 1 = clump scale is randomly distributed from 0 to 1)
-    [FieldOffset(24)] public float m_clumpRoundness;         //!< [0 - 2.0] exponential factor to control roundness of clump shape  = 0 = linear cone, clump scale *= power(t, roundness; where t is normalized distance from the root)
-    [FieldOffset(28)] public float m_clumpScale;             //!< [0 - 1.0] how clumped each hair face is
+    public float m_clumpNoise;             //!< [0 - 1.0] probability of each hair gets clumped (0 = all hairs get clumped, 1 = clump scale is randomly distributed from 0 to 1)
+    public float m_clumpRoundness;         //!< [0 - 2.0] exponential factor to control roundness of clump shape  = 0 = linear cone, clump scale *= power(t, roundness; where t is normalized distance from the root)
+    public float m_clumpScale;             //!< [0 - 1.0] how clumped each hair face is
 
-    [FieldOffset(32)] public float m_density;                    //!< [0 -    ] hair density per face (1.0 = 64 hairs per face)
-    [FieldOffset(36)] public bool m_usePixelDensity;           //!< [true/false] whether to use per-pixel sampling or per-vertex sampling for density map
+    public float m_density;                    //!< [0 -    ] hair density per face (1.0 = 64 hairs per face)
+    [MarshalAs(UnmanagedType.I1)] public bool m_usePixelDensity;           //!< [true/false] whether to use per-pixel sampling or per-vertex sampling for density map
 
-    [FieldOffset(40)] public float m_lengthNoise;                //!< [0 - 1.0] length variation noise
-    [FieldOffset(44)] public float m_lengthScale;                //!< [0 - 1.0] length control for growing hair effect
+    public float m_lengthNoise;                //!< [0 - 1.0] length variation noise
+    public float m_lengthScale;                //!< [0 - 1.0] length control for growing hair effect
 
-    [FieldOffset(48)] public float m_waveScale;              //!< [In Centimeters] size of waves for hair waviness 
-    [FieldOffset(52)] public float m_waveScaleNoise;         //!< [0 - 1.0] noise factor for the wave scale
-    [FieldOffset(56)] public float m_waveScaleClump;         //!< [0 - 1.0] waviness at clump level
-    [FieldOffset(60)] public float m_waveScaleStrand;            //!< [0 - 1.0] waviness at strand level
-    [FieldOffset(64)] public float m_waveFreq;                   //!< [0 -    ] wave frequency (1.0 = one sine wave along hair length)
-    [FieldOffset(68)] public float m_waveFreqNoise;          //!< [0 - 1.0] noise factor for the wave frequency 
-    [FieldOffset(72)] public float m_waveRootStraighten;     //!< [0 - 1.0] For some distance from the root, we atteunate waviness so that root itself does not move [0-1]
+    public float m_waveScale;              //!< [In Centimeters] size of waves for hair waviness 
+    public float m_waveScaleNoise;         //!< [0 - 1.0] noise factor for the wave scale
+    public float m_waveScaleClump;         //!< [0 - 1.0] waviness at clump level
+    public float m_waveScaleStrand;            //!< [0 - 1.0] waviness at strand level
+    public float m_waveFreq;                   //!< [0 -    ] wave frequency (1.0 = one sine wave along hair length)
+    public float m_waveFreqNoise;          //!< [0 - 1.0] noise factor for the wave frequency 
+    public float m_waveRootStraighten;     //!< [0 - 1.0] For some distance from the root, we atteunate waviness so that root itself does not move [0-1]
 
     /// shading controls
-    [FieldOffset(76)] public float m_rootAlphaFalloff;           //!< [0 - 1.0] falloff factor for alpha transition from root 
-    [FieldOffset(80)] public Color m_rootColor;               //!< [0 - 1.0] color of hair root (when hair textures are not used)
-    [FieldOffset(96)] public Color m_tipColor;                    //!< [0 - 1.0] color of hair tip (when hair textures are not used)
-    [FieldOffset(112)] public float m_rootTipColorWeight;     //!< [0 - 1.0] blend factor between root and tip color in addition to hair length
-    [FieldOffset(116)] public float m_rootTipColorFalloff;        //!< [0 - 1.0] falloff factor for root/tip color interpolation
+    public float m_rootAlphaFalloff;           //!< [0 - 1.0] falloff factor for alpha transition from root 
+    public Color m_rootColor;               //!< [0 - 1.0] color of hair root (when hair textures are not used)
+    public Color m_tipColor;                    //!< [0 - 1.0] color of hair tip (when hair textures are not used)
+    public float m_rootTipColorWeight;     //!< [0 - 1.0] blend factor between root and tip color in addition to hair length
+    public float m_rootTipColorFalloff;        //!< [0 - 1.0] falloff factor for root/tip color interpolation
 
-    [FieldOffset(120)] public float m_diffuseBlend;               //!< [0 - 1.0] blend factor between Kajiya hair lighting vs normal skin lighting.
-    [FieldOffset(124)] public float m_hairNormalWeight;           //!< [0 - 1.0] blend factor between mesh normal vs hair normal. Use higher value for longer (surface like) hair.
-    [FieldOffset(128)] public int m_hairNormalBoneIndex;        //!< [0 - number of bones] index for the bone which we use as model center for diffuse shading purpose
+    public float m_diffuseBlend;               //!< [0 - 1.0] blend factor between Kajiya hair lighting vs normal skin lighting.
+    public float m_hairNormalWeight;           //!< [0 - 1.0] blend factor between mesh normal vs hair normal. Use higher value for longer (surface like) hair.
+    public int m_hairNormalBoneIndex;        //!< [0 - number of bones] index for the bone which we use as model center for diffuse shading purpose
 
-    [FieldOffset(132)] public Color m_specularColor;           //!< [0 - 1.0] specular color
-    [FieldOffset(148)] public float m_specularNoiseScale;     //!< [0 - 1.0] amount of specular noise
-    [FieldOffset(152)] public float m_specularEnvScale;           //!< [0 - 1.0] amount of specular scale from env probe
-    [FieldOffset(156)] public float m_specularPrimary;            //!< [0 - 1.0] primary specular factor
-    [FieldOffset(160)] public float m_specularPowerPrimary;       //!< [0 - ] primary specular power exponent
-    [FieldOffset(164)] public float m_specularPrimaryBreakup; //!< [0 - 1.0] shift factor to make specular highlight move with noise
-    [FieldOffset(168)] public float m_specularSecondary;      //!< [0 - 1.0] secondary specular factor
-    [FieldOffset(172)] public float m_specularSecondaryOffset;    //!< [0 - 1.0] secondary highlight shift offset along tangents
+    public Color m_specularColor;           //!< [0 - 1.0] specular color
+    public float m_specularNoiseScale;     //!< [0 - 1.0] amount of specular noise
+    public float m_specularEnvScale;           //!< [0 - 1.0] amount of specular scale from env probe
+    public float m_specularPrimary;            //!< [0 - 1.0] primary specular factor
+    public float m_specularPowerPrimary;       //!< [0 - ] primary specular power exponent
+    public float m_specularPrimaryBreakup; //!< [0 - 1.0] shift factor to make specular highlight move with noise
+    public float m_specularSecondary;      //!< [0 - 1.0] secondary specular factor
+    public float m_specularSecondaryOffset;    //!< [0 - 1.0] secondary highlight shift offset along tangents
 
-    [FieldOffset(176)] public float m_specularPowerSecondary; //!< [0 - ] secondary specular power exponent		
+    public float m_specularPowerSecondary; //!< [0 - ] secondary specular power exponent		
 
-    [FieldOffset(180)] public float m_glintStrength;          //!< [0 - 1.0] strength of the glint noise
-    [FieldOffset(184)] public float m_glintCount;             //!< [0 - 1024] number of glint sparklets along each hair
-    [FieldOffset(188)] public float m_glintExponent;          //!< [0 - ] glint power exponent
+    public float m_glintStrength;          //!< [0 - 1.0] strength of the glint noise
+    public float m_glintCount;             //!< [0 - 1024] number of glint sparklets along each hair
+    public float m_glintExponent;          //!< [0 - ] glint power exponent
 
-    [FieldOffset(192)] public bool m_castShadows;               //!< [true/false] this hair cast shadows onto the scene
-    [FieldOffset(193)] public bool m_receiveShadows;            //!< [true/false] this hair receives shadows from the scene
-    [FieldOffset(196)] public float m_shadowSigma;                //!< [In Centimeters] distance through hair volume beyond which hairs get completely shadowed.
+    [MarshalAs(UnmanagedType.I1)] public bool m_castShadows;               //!< [true/false] this hair cast shadows onto the scene
+    [MarshalAs(UnmanagedType.I1)] public bool m_receiveShadows;            //!< [true/false] this hair receives shadows from the scene
+    public float m_shadowSigma;                //!< [In Centimeters] distance through hair volume beyond which hairs get completely shadowed.
 
-    [FieldOffset(200)] public int m_strandBlendMode;            //!< [GFSDK_HAIR_STRAND_BLEND_MODE] blend mode when strand texture is used. Supported mode are defined in GFSDK_HAIR_STRAND_BLEND_MODE.
-    [FieldOffset(204)] public float m_strandBlendScale;           //!< [0 - 1.0] scale strand texture before blend
+    public int m_strandBlendMode;            //!< [GFSDK_HAIR_STRAND_BLEND_MODE] blend mode when strand texture is used. Supported mode are defined in GFSDK_HAIR_STRAND_BLEND_MODE.
+    public float m_strandBlendScale;           //!< [0 - 1.0] scale strand texture before blend
 
     // simulation control
-    [FieldOffset(208)] public float m_backStopRadius;         //!< [0 - 1.0] radius of backstop collision (normalized along hair length)
-    [FieldOffset(212)] public float m_bendStiffness;          //!< [0 - 1.0] stiffness for bending, useful for long hair
-    [FieldOffset(216)] public float m_damping;                    //!< [0 - ] damping to slow down hair motion
-    [FieldOffset(220)] public Vector3 m_gravityDir;              //!< [0 - 1.0] gravity force direction (unit vector)
-    [FieldOffset(232)] public float m_friction;                   //!< [0 - 1.0] friction when capsule collision is used
-    [FieldOffset(236)] public float m_massScale;              //!< [In Meters] mass scale for this hair
-    [FieldOffset(240)] public float m_inertiaScale;               //!< [0 - 1.0] inertia control. (0: no inertia, 1: full intertia)
-    [FieldOffset(244)] public float m_inertiaLimit;               //!< [In Meters] speed limit where everything gets locked (for teleport etc.)
-    [FieldOffset(248)] public float m_interactionStiffness;       //!< [0 - 1.0] how strong the hair interaction force is
-    [FieldOffset(252)] public float m_rootStiffness;          //!< [0 - 1.0] attenuation of stiffness away from the root (stiffer at root, weaker toward tip)
-    [FieldOffset(256)] public float m_pinStiffness;               //!< [0 - 1.0] stiffness for pin constraints
-    [FieldOffset(260)] public bool m_simulate;                  //!< [true/false] whether to turn on/off simulation
-    [FieldOffset(264)] public float m_stiffness;              //!< [0 - 1.0] how close hairs try to stay within skinned position
-    [FieldOffset(268)] public float m_stiffnessStrength;      //!< [0 - 1.0] how strongly hairs move toward the stiffness target
-    [FieldOffset(272)] public float m_stiffnessDamping;           //!< [0 - 1.0] how fast hair stiffness gerneated motion decays over time
-    [FieldOffset(276)] public float m_tipStiffness;               //!< [0 - 1.0] attenuation of stiffness away from the tip (stiffer at tip, weaker toward root)
-    [FieldOffset(280)] public bool m_useCollision;              //!< [true/false] whether to use the sphere/capsule collision or not for hair/body collision
-    [FieldOffset(284)] public Vector3 m_wind;                        //!< [In Meters] vector force for main wind direction
-    [FieldOffset(296)] public float m_windNoise;              //!< [0 - 1.0] strength of wind noise
+    public float m_backStopRadius;         //!< [0 - 1.0] radius of backstop collision (normalized along hair length)
+    public float m_bendStiffness;          //!< [0 - 1.0] stiffness for bending, useful for long hair
+    public float m_damping;                    //!< [0 - ] damping to slow down hair motion
+    public Vector3 m_gravityDir;              //!< [0 - 1.0] gravity force direction (unit vector)
+    public float m_friction;                   //!< [0 - 1.0] friction when capsule collision is used
+    public float m_massScale;              //!< [In Meters] mass scale for this hair
+    public float m_inertiaScale;               //!< [0 - 1.0] inertia control. (0: no inertia, 1: full intertia)
+    public float m_inertiaLimit;               //!< [In Meters] speed limit where everything gets locked (for teleport etc.)
+    public float m_interactionStiffness;       //!< [0 - 1.0] how strong the hair interaction force is
+    public float m_rootStiffness;          //!< [0 - 1.0] attenuation of stiffness away from the root (stiffer at root, weaker toward tip)
+    public float m_pinStiffness;               //!< [0 - 1.0] stiffness for pin constraints
+    [MarshalAs(UnmanagedType.I1)] public bool m_simulate;                  //!< [true/false] whether to turn on/off simulation
+    public float m_stiffness;              //!< [0 - 1.0] how close hairs try to stay within skinned position
+    public float m_stiffnessStrength;      //!< [0 - 1.0] how strongly hairs move toward the stiffness target
+    public float m_stiffnessDamping;           //!< [0 - 1.0] how fast hair stiffness gerneated motion decays over time
+    public float m_tipStiffness;               //!< [0 - 1.0] attenuation of stiffness away from the tip (stiffer at tip, weaker toward root)
+    [MarshalAs(UnmanagedType.I1)] public bool m_useCollision;              //!< [true/false] whether to use the sphere/capsule collision or not for hair/body collision
+    public Vector3 m_wind;                        //!< [In Meters] vector force for main wind direction
+    public float m_windNoise;              //!< [0 - 1.0] strength of wind noise
 
-    [FieldOffset(300)] public Vector4 m_stiffnessCurve;          //! [0 - 1.0] curve values for stiffness 
-    [FieldOffset(316)] public Vector4 m_stiffnessStrengthCurve;  //! [0 - 1.0] curve values for stiffness strength
-    [FieldOffset(332)] public Vector4 m_stiffnessDampingCurve;   //! [0 - 1.0] curve values for stiffness damping
-    [FieldOffset(348)] public Vector4 m_bendStiffnessCurve;      //! [0 - 1.0] curve values for bend stiffness
-    [FieldOffset(364)] public Vector4 m_interactionStiffnessCurve;//! [0 - 1.0] curve values for interaction stiffness
+    public Vector4 m_stiffnessCurve;          //! [0 - 1.0] curve values for stiffness 
+    public Vector4 m_stiffnessStrengthCurve;  //! [0 - 1.0] curve values for stiffness strength
+    public Vector4 m_stiffnessDampingCurve;   //! [0 - 1.0] curve values for stiffness damping
+    public Vector4 m_bendStiffnessCurve;      //! [0 - 1.0] curve values for bend stiffness
+    public Vector4 m_interactionStiffnessCurve;//! [0 - 1.0] curve values for interaction stiffness
 
     // lod controls
-    [FieldOffset(380)] public bool m_enableLOD;             //!< [true/false] whether to enable/disable entire lod scheme
+    [MarshalAs(UnmanagedType.I1)] public bool m_enableLOD;             //!< [true/false] whether to enable/disable entire lod scheme
 
-    [FieldOffset(381)] public bool m_enableDistanceLOD;     //!< [true/false] whether to enable lod for far away object (distance LOD)
-    [FieldOffset(384)] public float m_distanceLODStart;           //!< [In Meters] distance (in scene unit) to camera where fur will start fading out (by reducing density)
-    [FieldOffset(388)] public float m_distanceLODEnd;         //!< [In Meters] distance (in scene unit) to camera where fur will completely disappear (and stop simulating)
-    [FieldOffset(392)] public float m_distanceLODFadeStart;       //!< [In Meters] distance (in scene unit) to camera where fur will fade with alpha from 1 (this distance) to 0 (DistanceLODEnd)
-    [FieldOffset(396)] public float m_distanceLODDensity;     //!< [0 - ] density when distance LOD is in action.  hairDensity gets scaled based on LOD factor.
-    [FieldOffset(400)] public float m_distanceLODWidth;           //!< [In Millimeters] hair width that can change when close up density is triggered by closeup lod mechanism
+    [MarshalAs(UnmanagedType.I1)] public bool m_enableDistanceLOD;     //!< [true/false] whether to enable lod for far away object (distance LOD)
+    public float m_distanceLODStart;           //!< [In Meters] distance (in scene unit) to camera where fur will start fading out (by reducing density)
+    public float m_distanceLODEnd;         //!< [In Meters] distance (in scene unit) to camera where fur will completely disappear (and stop simulating)
+    public float m_distanceLODFadeStart;       //!< [In Meters] distance (in scene unit) to camera where fur will fade with alpha from 1 (this distance) to 0 (DistanceLODEnd)
+    public float m_distanceLODDensity;     //!< [0 - ] density when distance LOD is in action.  hairDensity gets scaled based on LOD factor.
+    public float m_distanceLODWidth;           //!< [In Millimeters] hair width that can change when close up density is triggered by closeup lod mechanism
 
-    [FieldOffset(404)] public bool m_enableDetailLOD;           //!< [true/false] whether to enable lod for close object (detail LOD)
-    [FieldOffset(408)] public float m_detailLODStart;         //!< [In Meters] distance (in scene unit) to camera where fur will start getting denser toward closeup density
-    [FieldOffset(412)] public float m_detailLODEnd;               //!< [In Meters] distance (in scene unit) to camera where fur will get full closeup density value
-    [FieldOffset(416)] public float m_detailLODDensity;           //!< [0 - ] density scale when closeup LOD is in action.  hairDensity gets scaled based on LOD factor.
-    [FieldOffset(420)] public float m_detailLODWidth;         //!< [In Millimeters] hair width that can change when close up density is triggered by closeup lod mechanism
+    [MarshalAs(UnmanagedType.I1)] public bool m_enableDetailLOD;           //!< [true/false] whether to enable lod for close object (detail LOD)
+    public float m_detailLODStart;         //!< [In Meters] distance (in scene unit) to camera where fur will start getting denser toward closeup density
+    public float m_detailLODEnd;               //!< [In Meters] distance (in scene unit) to camera where fur will get full closeup density value
+    public float m_detailLODDensity;           //!< [0 - ] density scale when closeup LOD is in action.  hairDensity gets scaled based on LOD factor.
+    public float m_detailLODWidth;         //!< [In Millimeters] hair width that can change when close up density is triggered by closeup lod mechanism
 
-    [FieldOffset(424)] public float m_shadowDensityScale;     //!< [0 - 1] density scale factor to reduce hair density for shadow map rendering
+    public float m_shadowDensityScale;     //!< [0 - 1] density scale factor to reduce hair density for shadow map rendering
 
-    [FieldOffset(428)] public bool m_useViewfrustrumCulling;    //!< [true/false] when this is on, density for hairs outside view are set to 0. Use this option when fur is in a closeup.
-    [FieldOffset(429)] public bool m_useBackfaceCulling;        //!< [true/false] when this is on, density for hairs growing from backfacing faces will be set to 0
-    [FieldOffset(432)] public float m_backfaceCullingThreshold; //!< [-1 - 1.0] threshold to determine backface, note that this value should be slightly smaller 0 to avoid hairs at the silhouette from disappearing
+    [MarshalAs(UnmanagedType.I1)] public bool m_useViewfrustrumCulling;    //!< [true/false] when this is on, density for hairs outside view are set to 0. Use this option when fur is in a closeup.
+    [MarshalAs(UnmanagedType.I1)] public bool m_useBackfaceCulling;        //!< [true/false] when this is on, density for hairs growing from backfacing faces will be set to 0
+    public float m_backfaceCullingThreshold; //!< [-1 - 1.0] threshold to determine backface, note that this value should be slightly smaller 0 to avoid hairs at the silhouette from disappearing
 
-    [FieldOffset(436)] public bool m_useCullSphere;         //!< [true/false] when this is on, hairs get culled when their root points are inside the sphere
-    [FieldOffset(440)] public Matrix4x4 m_cullSphereInvTransform;    //!< inverse of general affine transform (scale, rotation, translation..) applied to a unit sphere centered at origin
+    [MarshalAs(UnmanagedType.I1)] public bool m_useCullSphere;         //!< [true/false] when this is on, hairs get culled when their root points are inside the sphere
+    public Matrix4x4 m_cullSphereInvTransform;    //!< inverse of general affine transform (scale, rotation, translation..) applied to a unit sphere centered at origin
 
-    [FieldOffset(504)] public int m_splineMultiplier;           //!< how many vertices are generated per each control hair segments in spline curves
+    public int m_splineMultiplier;           //!< how many vertices are generated per each control hair segments in spline curves
 
     // drawing option
-    [FieldOffset(508)] public bool m_drawRenderHairs;           //!< [true/false] draw render hair
-    [FieldOffset(509)] public bool m_visualizeBones;            //!< [true/false] visualize skinning bones
-    [FieldOffset(510)] public bool m_visualizeBoundingBox;      //!< [true/false] draw bounding box of hairs
-    [FieldOffset(511)] public bool m_visualizeCapsules;     //!< [true/false] visualize collision capsules
-    [FieldOffset(512)] public bool m_visualizeControlVertices; //!< [true/false] draw control vertices of guide hairs
-    [FieldOffset(513)] public bool m_visualizeCullSphere;       //!< [true/false] draw cull sphere
-    [FieldOffset(514)] public bool m_visualizeFrames;           //!< [true/false] visualize coordinate frames
-    [FieldOffset(515)] public bool m_visualizeGrowthMesh;       //!< [true/false] draw growth mesh
-    [FieldOffset(516)] public bool m_visualizeGuideHairs;       //!< [true/false] draw guide hairs
-    [FieldOffset(517)] public bool m_visualizeHairInteractions;//!< [true/false] draw hair interaction lines
-    [FieldOffset(520)] public int m_visualizeHairSkips;     //!< [0 - ] for per hair visualization, how many hairs to skip?
-    [FieldOffset(524)] public bool m_visualizeLocalPos;     //!< [true/false] visualize target pose for bending
-    [FieldOffset(525)] public bool m_visualizePinConstraints;   //!< [true/false] whether to visualize pin constraint spheres
-    [FieldOffset(526)] public bool m_visualizeShadingNormals;   //!< [true/false] visualize normals used for hair shading
-    [FieldOffset(527)] public bool m_visualizeShadingNormalBone;    //!< [true/false] visualize bone used as shading normal center
-    [FieldOffset(528)] public bool m_visualizeSkinnedGuideHairs; //!< [true/false] draw skinned positions for guide hairs
+    [MarshalAs(UnmanagedType.I1)] public bool m_drawRenderHairs;           //!< [true/false] draw render hair
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeBones;            //!< [true/false] visualize skinning bones
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeBoundingBox;      //!< [true/false] draw bounding box of hairs
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeCapsules;     //!< [true/false] visualize collision capsules
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeControlVertices; //!< [true/false] draw control vertices of guide hairs
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeCullSphere;       //!< [true/false] draw cull sphere
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeFrames;           //!< [true/false] visualize coordinate frames
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeGrowthMesh;       //!< [true/false] draw growth mesh
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeGuideHairs;       //!< [true/false] draw guide hairs
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeHairInteractions;//!< [true/false] draw hair interaction lines
+    public int m_visualizeHairSkips;     //!< [0 - ] for per hair visualization, how many hairs to skip?
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeLocalPos;     //!< [true/false] visualize target pose for bending
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizePinConstraints;   //!< [true/false] whether to visualize pin constraint spheres
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeShadingNormals;   //!< [true/false] visualize normals used for hair shading
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeShadingNormalBone;    //!< [true/false] visualize bone used as shading normal center
+    [MarshalAs(UnmanagedType.I1)] public bool m_visualizeSkinnedGuideHairs; //!< [true/false] draw skinned positions for guide hairs
 
-    [FieldOffset(532)] public int m_colorizeMode;               //!< [GFSDK_HAIR_COLORIZE_MODE] colorize hair based on various terms. See GFSDK_HAIR_COLORIZE_MODE.
+    public int m_colorizeMode;               //!< [GFSDK_HAIR_COLORIZE_MODE] colorize hair based on various terms. See GFSDK_HAIR_COLORIZE_MODE.
 
     // texture control
-    [FieldOffset(536)] public fixed int m_textureChannels[(int)hwTextureType.NUM_TEXTURES]; //!< texture chanel for each control textures.  
+    public fixed int m_textureChannels[(int)hwTextureType.NUM_TEXTURES]; //!< texture chanel for each control textures.  
 
     // model to world transform
-    [FieldOffset(592)] public Matrix4x4 m_modelToWorld;              // render time transformation to offset hair from its simulated position
+    public Matrix4x4 m_modelToWorld;              // render time transformation to offset hair from its simulated position
 
 
     public static hwDescriptor default_value
