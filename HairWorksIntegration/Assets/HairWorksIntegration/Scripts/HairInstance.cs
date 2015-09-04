@@ -127,12 +127,16 @@ public class HairInstance : MonoBehaviour
     {
         if(m_skinning_matrices == null)
         {
-            // todo: gather skinning bones if needed
-            m_skinning_matrices = new Matrix4x4[1];
+            m_skinning_matrices = new Matrix4x4[HairWorksIntegration.hwAssetGetNumBones(m_aid)];
             m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
         }
 
-        m_skinning_matrices[0] = GetComponent<Transform>().localToWorldMatrix;
+        // todo: gather skinning bones if needed
+        var m = GetComponent<Transform>().localToWorldMatrix;
+        for (int i=0; i< m_skinning_matrices.Length; ++i) {
+            m_skinning_matrices[i] = m;
+        }
+
         HairWorksIntegration.hwInstanceSetDescriptor(m_iid, ref m_params);
         HairWorksIntegration.hwInstanceUpdateSkinningMatrices(m_iid, m_skinning_matrices.Length, m_skinning_matrices_ptr);
 

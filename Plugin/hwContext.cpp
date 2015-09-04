@@ -177,7 +177,13 @@ hwAssetID hwContext::assetLoadFromFile(const std::string &path)
     }
 
     hwAssetID aid = hwNullID;
-    if (m_sdk->LoadHairAssetFromFile(path.c_str(), (GFSDK_HairAssetID*)&aid) == GFSDK_HAIR_RETURN_OK) {
+    GFSDK_HairConversionSettings conversionSettings;
+    {
+        conversionSettings.m_targetHandednessHint = GFSDK_HAIR_RIGHT_HANDED;
+        conversionSettings.m_targetUpAxisHint = GFSDK_HAIR_Y_UP;
+        conversionSettings.m_targetSceneUnit = 0.0f;
+    }
+    if (m_sdk->LoadHairAssetFromFile(path.c_str(), (GFSDK_HairAssetID*)&aid, nullptr, &conversionSettings) == GFSDK_HAIR_RETURN_OK) {
         m_assets.resize(std::max<int>(m_assets.size(), aid + 1));
         auto &v = m_assets[aid];
         v.path = path;
@@ -211,6 +217,46 @@ void hwContext::assetReload(hwAssetID aid)
 {
     // todo
 }
+
+int hwContext::assetGetNumBones(hwAssetID aid) const
+{
+    uint32_t r = 0;
+    if (m_sdk->GetNumBones((GFSDK_HairAssetID)aid, &r) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetNumBones(%d) failed.\n", aid);
+    }
+    return r;
+}
+
+const char* hwContext::assetGetBoneName(hwAssetID aid, int nth) const
+{
+    static char tmp[256];
+    if (m_sdk->GetBoneName((GFSDK_HairAssetID)aid, nth, tmp) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetBoneName(%d) failed.\n", aid);
+    }
+    return tmp;
+}
+
+void hwContext::assetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices) const
+{
+    if (m_sdk->GetBoneIndices((GFSDK_HairAssetID)aid, &o_indices) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetBoneIndices(%d) failed.\n", aid);
+    }
+}
+
+void hwContext::assetGetBoneWeights(hwAssetID aid, hwFloat4 &o_waits) const
+{
+    if (m_sdk->GetBoneWeights((GFSDK_HairAssetID)aid, &o_waits) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetBoneWeights(%d) failed.\n", aid);
+    }
+}
+
+void hwContext::assetGetDefaultDescriptor(hwAssetID aid, hwHairDescriptor &o_desc) const
+{
+    if (m_sdk->CopyInstanceDescriptorFromAsset((GFSDK_HairAssetID)aid, o_desc) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::CopyInstanceDescriptorFromAsset(%d) failed.\n", aid);
+    }
+}
+
 
 
 hwInstanceID hwContext::instanceCreate(hwAssetID aid)
@@ -381,6 +427,9 @@ void hwContext::setShaderImpl(hwShaderID sid)
 
 void hwContext::renderImpl(hwInstanceID iid)
 {
+    ID3D11ShaderResourceView* ppSRV[GFSDK_HAIR_NUM_SHADER_RESOUCES];
+    m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, ppSRV);
+    m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, ppSRV);
     if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid) != GFSDK_HAIR_RETURN_OK)
     {
         hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);
@@ -390,6 +439,9 @@ void hwContext::renderImpl(hwInstanceID iid)
 void hwContext::renderShadowImpl(hwInstanceID iid)
 {
     auto settings = GFSDK_HairShaderSettings(false, true);
+    ID3D11ShaderResourceView* ppSRV[GFSDK_HAIR_NUM_SHADER_RESOUCES];
+    m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, ppSRV);
+    m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, ppSRV);
     if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid, &settings) != GFSDK_HAIR_RETURN_OK)
     {
         hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);

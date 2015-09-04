@@ -78,6 +78,11 @@ public:
     hwAssetID       assetLoadFromFile(const std::string &path);
     void            assetRelease(hwAssetID aid);
     void            assetReload(hwAssetID aid);
+    int             assetGetNumBones(hwAssetID aid) const;
+    const char*     assetGetBoneName(hwAssetID aid, int nth) const;
+    void            assetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices) const;
+    void            assetGetBoneWeights(hwAssetID aid, hwFloat4 &o_waits) const;
+    void            assetGetDefaultDescriptor(hwAssetID aid, hwHairDescriptor &o_desc) const;
 
     hwInstanceID    instanceCreate(hwAssetID aid);
     void            instanceRelease(hwInstanceID iid);

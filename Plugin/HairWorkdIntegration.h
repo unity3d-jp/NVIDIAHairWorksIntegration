@@ -15,6 +15,7 @@ typedef ID3D11Texture2D hwTexture;
 typedef ID3D11ShaderResourceView hwSRV;
 typedef ID3D11RenderTargetView hwRTV;
 typedef XMMATRIX hwMatrix;
+typedef gfsdk_float4 hwFloat4;
 
 typedef void(__stdcall *hwLogCallback)(const char *);
 #define hwNullID 0xFFFF
@@ -41,11 +42,16 @@ hwCLinkage hwExport void            hwShaderReload(hwShaderID sid);
 hwCLinkage hwExport hwAssetID       hwAssetLoadFromFile(const char *path);
 hwCLinkage hwExport void            hwAssetRelease(hwAssetID aid);
 hwCLinkage hwExport void            hwAssetReload(hwAssetID aid);
+hwCLinkage hwExport int             hwAssetGetNumBones(hwAssetID aid);
+hwCLinkage hwExport const char*     hwAssetGetBoneName(hwAssetID aid, int nth);
+hwCLinkage hwExport void            hwAssetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices);
+hwCLinkage hwExport void            hwAssetGetBoneWeights(hwAssetID aid, hwFloat4 &o_waits);
+hwCLinkage hwExport void            hwAssetGetDefaultDescriptor(hwAssetID aid, hwHairDescriptor &o_desc);
 
 hwCLinkage hwExport hwInstanceID    hwInstanceCreate(hwAssetID aid);
 hwCLinkage hwExport void            hwInstanceRelease(hwInstanceID iid);
 hwCLinkage hwExport void            hwInstanceGetAssetID(hwInstanceID iid);
-hwCLinkage hwExport void            hwInstanceGetDescriptor(hwInstanceID iid, hwHairDescriptor *desc);
+hwCLinkage hwExport void            hwInstanceGetDescriptor(hwInstanceID iid, hwHairDescriptor *o_desc);
 hwCLinkage hwExport void            hwInstanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor *desc);
 hwCLinkage hwExport void            hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex);
 hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);

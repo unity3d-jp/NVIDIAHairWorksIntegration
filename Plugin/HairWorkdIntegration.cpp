@@ -178,6 +178,41 @@ hwCLinkage hwExport void hwAssetReload(hwAssetID aid)
     }
 }
 
+hwCLinkage hwExport int hwAssetGetNumBones(hwAssetID aid)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->assetGetNumBones(aid);
+    }
+}
+
+hwCLinkage hwExport const char* hwAssetGetBoneName(hwAssetID aid, int nth)
+{
+    if (auto ctx = hwGetContext()) {
+        return ctx->assetGetBoneName(aid, nth);
+    }
+}
+
+hwCLinkage hwExport void hwAssetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->assetGetBoneIndices(aid, o_indices);
+    }
+}
+
+hwCLinkage hwExport void hwAssetGetBoneWeights(hwAssetID aid, hwFloat4 &o_waits)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->assetGetBoneWeights(aid, o_waits);
+    }
+}
+
+hwCLinkage hwExport void hwAssetGetDefaultDescriptor(hwAssetID aid, hwHairDescriptor &o_desc)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->assetGetDefaultDescriptor(aid, o_desc);
+    }
+}
+
 
 hwCLinkage hwExport hwInstanceID hwInstanceCreate(hwAssetID aid)
 {
