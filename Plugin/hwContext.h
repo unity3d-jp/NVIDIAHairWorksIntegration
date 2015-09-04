@@ -126,6 +126,8 @@ private:
     DrawCommands        m_commands;
     SRVTable            m_srvtable;
     RTVTable            m_rtvtable;
+
+    ID3D11DepthStencilState *m_rs_enable_depth;
 };
 
 #endif // hwContext_h

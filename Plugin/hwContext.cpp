@@ -17,9 +17,11 @@ bool hwFileToString(std::string &o_buf, const char *path)
 
 
 hwContext::hwContext()
-    : m_sdk(nullptr)
+    : m_d3ddev(nullptr)
+    , m_d3dctx(nullptr)
+    , m_sdk(nullptr)
+    , m_rs_enable_depth(nullptr)
 {
-
 }
 
 hwContext::~hwContext()
@@ -71,6 +73,11 @@ bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
         return false;
     }
 
+    {
+        CD3D11_DEPTH_STENCIL_DESC desc;
+        m_d3ddev->CreateDepthStencilState(&desc, &m_rs_enable_depth);
+    }
+
     return true;
 }
 
@@ -84,6 +91,17 @@ void hwContext::finalize()
 
     for (auto &i : m_shaders) { shaderRelease(i.id); }
     m_shaders.clear();
+
+    for (auto &i : m_srvtable) { i.second->Release(); }
+    m_srvtable.clear();
+
+    for (auto &i : m_rtvtable) { i.second->Release(); }
+    m_rtvtable.clear();
+
+    if (m_rs_enable_depth) {
+        m_rs_enable_depth->Release();
+        m_rs_enable_depth = nullptr;
+    }
 
     if (m_sdk) {
         m_sdk->Release();
@@ -445,6 +463,8 @@ void hwContext::renderShadowImpl(hwInstanceID iid)
 
 void hwContext::flush()
 {
+    m_d3dctx->OMSetDepthStencilState(m_rs_enable_depth, 0);
+
     for (int i=0; i<m_commands.size(); ) {
         CommandID cid = (CommandID&)m_commands[i];
         switch (cid) {
@@ -486,6 +506,8 @@ void hwContext::flush()
         }
     }
     m_commands.clear();
+
+    //m_d3dctx->Flush();
 }
 
 void hwContext::stepSimulation(float dt)
