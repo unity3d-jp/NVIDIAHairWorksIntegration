@@ -29,16 +29,16 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleShading\HairWorksSampleShader.hlsl">
+    <FxCompile Include="Shaders\DefaultHairShader.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ps_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Master|x64'">ps_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Master|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Master|x64'">5.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Master|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -83,7 +83,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PostBuildEvent>
-      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
+      <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\HairWorksIntegration\
+xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
@@ -96,10 +97,14 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <AdditionalIncludeDirectories>Externals\HairWorks-r1-1-212-distro\samples\FurSampleShading;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PostBuildEvent>
-      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
+      <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\HairWorksIntegration\
+xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
@@ -112,10 +117,14 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <AdditionalIncludeDirectories>Externals\HairWorks-r1-1-212-distro\samples\FurSampleShading;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Master|x64'">
     <PostBuildEvent>
-      <Command>xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
+      <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\HairWorksIntegration\
+xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
@@ -131,6 +140,9 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
+    <FxCompile>
+      <AdditionalIncludeDirectories>Externals\HairWorks-r1-1-212-distro\samples\FurSampleShading;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

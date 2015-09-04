@@ -39,6 +39,8 @@ public class HairInstance : MonoBehaviour
     hwShaderID m_sid = hwShaderID.NullID;
     hwAssetID m_aid = hwAssetID.NullID;
     hwInstanceID m_iid = hwInstanceID.NullID;
+    Matrix4x4[] m_skinning_matrices;
+    System.IntPtr m_skinning_matrices_ptr;
 
 
     public int shader_id { get { return m_sid; } }
@@ -62,6 +64,11 @@ public class HairInstance : MonoBehaviour
         }
     }
 
+    public void ReloadHairShader()
+    {
+        HairWorksIntegration.hwShaderReload(m_sid);
+    }
+
     public void LoadHairAsset(string path_to_apx)
     {
         // release existing instance & asset
@@ -83,6 +90,11 @@ public class HairInstance : MonoBehaviour
             m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);
             HairWorksIntegration.hwInstanceGetDescriptor(m_iid, ref m_params);
         }
+    }
+
+    public void ReloadHairAsset()
+    {
+        HairWorksIntegration.hwAssetReload(m_aid);
     }
 
     public void AssignTexture(hwTextureType type, Texture2D tex)
@@ -113,8 +125,16 @@ public class HairInstance : MonoBehaviour
 
     void Update()
     {
-        m_params.m_modelToWorld = GetComponent<Transform>().localToWorldMatrix;
+        if(m_skinning_matrices == null)
+        {
+            // todo: gather skinning bones if needed
+            m_skinning_matrices = new Matrix4x4[1];
+            m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
+        }
+
+        m_skinning_matrices[0] = GetComponent<Transform>().localToWorldMatrix;
         HairWorksIntegration.hwInstanceSetDescriptor(m_iid, ref m_params);
+        HairWorksIntegration.hwInstanceUpdateSkinningMatrices(m_iid, m_skinning_matrices.Length, m_skinning_matrices_ptr);
 
         s_nth_LateUpdate = 0;
     }

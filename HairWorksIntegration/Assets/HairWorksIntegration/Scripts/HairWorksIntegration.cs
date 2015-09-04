@@ -375,7 +375,7 @@ public enum hwTextureType
 };
 
 
-public static unsafe class HairWorksIntegration
+public static class HairWorksIntegration
 {
     public delegate void hwLogCallback(System.IntPtr cstr);
     [DllImport ("HairWorksIntegration")] public static extern int           hwGetFlushEventID();
@@ -383,16 +383,18 @@ public static unsafe class HairWorksIntegration
 
     [DllImport ("HairWorksIntegration")] public static extern hwShaderID    hwShaderLoadFromFile(string path);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwShaderID sid);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderReload(hwShaderID sid);
 
     [DllImport ("HairWorksIntegration")] public static extern hwAssetID     hwAssetLoadFromFile(string path);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwAssetID aid);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetReload(hwAssetID aid);
 
     [DllImport ("HairWorksIntegration")] public static extern hwInstanceID  hwInstanceCreate(hwAssetID aid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwInstanceRelease(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, System.IntPtr tex);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, Matrix4x4 *matrices);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, IntPtr tex);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, IntPtr matrices);
 
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fov);
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetRenderTarget(System.IntPtr framebuffer, System.IntPtr depthbuffer);

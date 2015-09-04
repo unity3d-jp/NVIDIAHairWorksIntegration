@@ -62,6 +62,14 @@ bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
 
     m_d3ddev = (ID3D11Device*)d3d_device;
     m_d3ddev->GetImmediateContext(&m_d3dctx);
+    if (m_sdk->SetCurrentContext(m_d3dctx) == GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::SetCurrentContext() succeeded.\n");
+    }
+    else {
+        hwDebugLog("GFSDK_HairSDK::SetCurrentContext() failed.\n");
+        finalize();
+        return false;
+    }
 
     return true;
 }
@@ -134,6 +142,29 @@ void hwContext::shaderRelease(hwShaderID sid)
     }
 }
 
+void hwContext::shaderReload(hwShaderID sid)
+{
+    if (sid >= m_shaders.size()) { return; }
+
+    auto &v = m_shaders[sid];
+    if (v.shader) {
+        v.shader->Release();
+        v.shader = nullptr;
+    }
+
+    std::string bin;
+    if (!hwFileToString(bin, v.path.c_str())) {
+        hwDebugLog("failed to reload shader (%s)\n", v.path.c_str());
+        return;
+    }
+    if (SUCCEEDED(m_d3ddev->CreatePixelShader(&bin[0], bin.size(), nullptr, &v.shader))) {
+        hwDebugLog("CreatePixelShader(%s) : %d reloaded.\n", v.path.c_str(), v.id);
+    }
+    else {
+        hwDebugLog("CreatePixelShader(%s) failed to reload.\n", v.path.c_str());
+    }
+}
+
 
 hwAssetID hwContext::assetLoadFromFile(const std::string &path)
 {
@@ -175,6 +206,12 @@ void hwContext::assetRelease(hwAssetID aid)
         v = AssetHolder();
     }
 }
+
+void hwContext::assetReload(hwAssetID aid)
+{
+    // todo
+}
+
 
 hwInstanceID hwContext::instanceCreate(hwAssetID aid)
 {

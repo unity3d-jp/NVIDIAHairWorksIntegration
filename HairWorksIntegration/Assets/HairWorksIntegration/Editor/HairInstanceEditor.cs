@@ -10,16 +10,29 @@ public class HairInstanceEditor : Editor
         DrawDefaultInspector();
 
         var t = target as HairInstance;
-        if (GUILayout.Button("Select Hair Shader"))
+        if (GUILayout.Button("Load Hair Shader"))
         {
             var path = EditorUtility.OpenFilePanel("Select compiled shader (.cso) file in StreamingAssets directory", Application.streamingAssetsPath, "cso");
             t.LoadHairShader(MakeRelativePath(path));
         }
-        if (GUILayout.Button("Select Hair Asset"))
+        if (GUILayout.Button("Load Hair Asset"))
         {
             var path = EditorUtility.OpenFilePanel("Select apx file in StreamingAssets directory", Application.streamingAssetsPath, "apx");
             t.LoadHairAsset(MakeRelativePath(path));
         }
+
+        if (GUILayout.Button("Reload Hair Shader"))
+        {
+            var path = EditorUtility.OpenFilePanel("Select compiled shader (.cso) file in StreamingAssets directory", Application.streamingAssetsPath, "cso");
+            t.ReloadHairShader();
+        }
+
+        if (GUILayout.Button("Reload Hair Asset"))
+        {
+            var path = EditorUtility.OpenFilePanel("Select apx file in StreamingAssets directory", Application.streamingAssetsPath, "apx");
+            t.ReloadHairAsset();
+        }
+
         GUILayout.Label(
             "hair shader: " + t.m_hair_shader + "\n" +
             "hair asset: " + t.m_hair_asset + "\n" +

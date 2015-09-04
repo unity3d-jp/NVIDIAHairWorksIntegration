@@ -36,11 +36,11 @@ hwCLinkage hwExport void            hwSetLogCallback(hwLogCallback cb);
 
 hwCLinkage hwExport hwShaderID      hwShaderLoadFromFile(const char *path);
 hwCLinkage hwExport void            hwShaderRelease(hwShaderID sid);
-hwCLinkage hwExport void            hwShaderReload(const char *path);
+hwCLinkage hwExport void            hwShaderReload(hwShaderID sid);
 
 hwCLinkage hwExport hwAssetID       hwAssetLoadFromFile(const char *path);
 hwCLinkage hwExport void            hwAssetRelease(hwAssetID aid);
-hwCLinkage hwExport void            hwAssetReload(const char *path);
+hwCLinkage hwExport void            hwAssetReload(hwAssetID aid);
 
 hwCLinkage hwExport hwInstanceID    hwInstanceCreate(hwAssetID aid);
 hwCLinkage hwExport void            hwInstanceRelease(hwInstanceID iid);

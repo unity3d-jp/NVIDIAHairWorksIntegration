@@ -55,7 +55,7 @@ hwCLinkage hwExport void UnityRenderEvent(int eventID)
 }
 
 
-hwThreadLocal hwLogCallback g_hwLogCallback;
+/*hwThreadLocal*/ hwLogCallback g_hwLogCallback;
 
 #ifdef hwDebug
 void hwDebugLogImpl(const char* fmt, ...)
@@ -148,6 +148,13 @@ hwCLinkage hwExport void hwShaderRelease(hwShaderID sid)
     }
 }
 
+hwCLinkage hwExport void hwShaderReload(hwShaderID sid)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->shaderReload(sid);
+    }
+}
+
 
 hwCLinkage hwExport hwAssetID hwAssetLoadFromFile(const char *path)
 {
@@ -161,6 +168,13 @@ hwCLinkage hwExport void hwAssetRelease(hwAssetID aid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetRelease(aid);
+    }
+}
+
+hwCLinkage hwExport void hwAssetReload(hwAssetID aid)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->assetReload(aid);
     }
 }
 

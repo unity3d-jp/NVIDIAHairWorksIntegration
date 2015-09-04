@@ -72,10 +72,12 @@ public:
     void finalize();
 
     hwShaderID      shaderLoadFromFile(const std::string &path);
-    void            shaderRelease(hwShaderID aid);
+    void            shaderRelease(hwShaderID sid);
+    void            shaderReload(hwShaderID sid);
 
     hwAssetID       assetLoadFromFile(const std::string &path);
     void            assetRelease(hwAssetID aid);
+    void            assetReload(hwAssetID aid);
 
     hwInstanceID    instanceCreate(hwAssetID aid);
     void            instanceRelease(hwInstanceID iid);

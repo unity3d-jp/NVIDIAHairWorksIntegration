@@ -16,7 +16,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Externals\HairWorks-r1-1-212-distro\samples\FurSampleShading\HairWorksSampleShader.hlsl">
+    <FxCompile Include="Shaders\DefaultHairShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
