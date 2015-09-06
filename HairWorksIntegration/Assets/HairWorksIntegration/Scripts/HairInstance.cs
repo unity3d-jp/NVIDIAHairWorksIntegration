@@ -171,6 +171,11 @@ public class HairInstance : MonoBehaviour
 
     void OnWillRenderObject()
     {
+        s_nth_OnWillRenderObject = 0;
+    }
+
+    void OnRenderObject()
+    {
         if (s_nth_OnWillRenderObject++ == 0)
         {
             BeginRender();
@@ -178,13 +183,8 @@ public class HairInstance : MonoBehaviour
             {
                 a.Render();
             }
+            EndRender();
         }
-    }
-
-    void OnRenderObject()
-    {
-        EndRender();
-        s_nth_OnWillRenderObject = 0;
     }
 
 
@@ -198,6 +198,7 @@ public class HairInstance : MonoBehaviour
             Matrix4x4 P = GL.GetGPUProjectionMatrix(cam.projectionMatrix, true);
             float fov = cam.fieldOfView;
             HairWorksIntegration.hwSetViewProjection(ref V, ref P, fov);
+            HairLight.AssignLightData();
         }
     }
 

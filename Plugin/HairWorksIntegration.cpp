@@ -323,7 +323,7 @@ hwCLinkage hwExport void hwSetShader(hwShaderID sid)
     }
 }
 
-hwCLinkage hwExport void hwSetLights(int num_lights, const hwLight *lights)
+hwCLinkage hwExport void hwSetLights(int num_lights, const hwLightData *lights)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setLights(num_lights, lights);

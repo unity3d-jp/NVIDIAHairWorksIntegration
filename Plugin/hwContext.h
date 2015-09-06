@@ -1,45 +1,70 @@
 ﻿#ifndef hwContext_h
 #define hwContext_h
 
-struct hwLight
+struct hwShaderData
 {
-    int type;
-    bool receive_shadow;
-    bool cast_shadow;
-    float range;
-    hwFloat3 position;
-    hwFloat3 direction;
-    hwFloat4 color;
+    hwShaderID id;
+    int ref_count;
+    ID3D11PixelShader *shader;
+    std::string path;
+
+    hwShaderData() : id(hwNullID), ref_count(0), shader(nullptr) {}
 };
+
+struct hwAssetData
+{
+    hwAssetID id;
+    int ref_count;
+    std::string path;
+
+    hwAssetData() : id(hwNullID), ref_count(0) {}
+};
+
+struct hwInstanceData
+{
+    hwInstanceID id;
+    hwAssetID aid;
+    bool cast_shadow;
+    bool receive_shadow;
+
+    hwInstanceData() : id(hwNullID), aid(hwNullID), cast_shadow(), receive_shadow() {}
+};
+
+enum hwELightType
+{
+    hwELightType_Directional,
+    hwELightType_Point,
+};
+
+struct hwLightData
+{
+    hwELightType type; int pad[3];
+    hwFloat3 position; // direction if directional light, position if point light
+    float range;
+    hwFloat4 color;
+
+    hwLightData()
+        : type(hwELightType_Directional)
+        , position({ 0.0f, 0.0f, 0.0f })
+        , range(0.0f)
+        , color({ 1.0f, 1.0f, 1.0f, 1.0 })
+    {}
+};
+
+struct hwConstantBuffer
+{
+    int num_lights; int pad0[3];
+    hwLightData lights[hwMaxLights];
+    GFSDK_HairShaderConstantBuffer hw;
+
+    hwConstantBuffer() : num_lights(0) {}
+};
+
+
 
 class hwContext
 {
 public:
-    struct ShaderHolder
-    {
-        std::string path;
-        hwShaderID id;
-        int ref_count;
-        ID3D11PixelShader *shader;
-        ShaderHolder() : id(hwNullID), ref_count(0), shader(nullptr) {}
-    };
-
-    struct AssetHolder
-    {
-        std::string path;
-        hwAssetID id;
-        int ref_count;
-        AssetHolder() : id(hwNullID), ref_count(0) {}
-    };
-
-    struct InstanceHolder
-    {
-        hwInstanceID id;
-        hwAssetID aid;
-        InstanceHolder() : id(hwNullID), aid(hwNullID) {}
-    };
-
-
     // メインスレッドと Unity のレンダリングスレッドは別である可能性があるため、
     // 外に見せる描画系関数はコマンドを積むだけにして、UnityRenderEvent() でそれを flush するという形式をとる。
     enum CommandID
@@ -68,7 +93,7 @@ public:
     {
         CommandID command;
         int num_lights;
-        hwLight lights[hwMaxLights];
+        hwLightData lights[hwMaxLights];
     };
     struct DrawCommand
     {
@@ -85,7 +110,7 @@ public:
 
     bool initialize(const char *path_to_dll, hwDevice *d3d_device);
     void finalize();
-    void move(hwContext &o);
+    void move(hwContext &from);
 
     hwShaderID      shaderLoadFromFile(const std::string &path);
     void            shaderRelease(hwShaderID sid);
@@ -110,7 +135,7 @@ public:
     void setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov);
     void setRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
     void setShader(hwShaderID sid);
-    void setLights(int num_lights, const hwLight *lights);
+    void setLights(int num_lights, const hwLightData *lights);
     void render(hwInstanceID iid);
     void renderShadow(hwInstanceID iid);
     void flush();
@@ -121,31 +146,34 @@ private:
     void setViewProjectionImpl(const hwMatrix &view, const hwMatrix &proj, float fov);
     void setRenderTargetImpl(hwTexture *framebuffer, hwTexture *depthbuffer);
     void setShaderImpl(hwShaderID sid);
-    void setLightsImpl(int num_lights, const hwLight *lights);
+    void setLightsImpl(int num_lights, const hwLightData *lights);
     void renderImpl(hwInstanceID iid);
     void renderShadowImpl(hwInstanceID iid);
     hwSRV* getSRV(hwTexture *tex);
     hwRTV* getRTV(hwTexture *tex);
 
 private:
-    typedef std::vector<ShaderHolder>       ShaderCont;
-    typedef std::vector<AssetHolder>        AssetCont;
-    typedef std::vector<InstanceHolder>     InstanceCont;
+    typedef std::vector<hwShaderData>       ShaderCont;
+    typedef std::vector<hwAssetData>        AssetCont;
+    typedef std::vector<hwInstanceData>     InstanceCont;
     typedef std::map<hwTexture*, hwSRV*>    SRVTable;
     typedef std::map<hwTexture*, hwRTV*>    RTVTable;
     typedef std::vector<char>               DrawCommands;
 
-    ID3D11Device        *m_d3ddev;
-    ID3D11DeviceContext *m_d3dctx;
-    hwSDK               *m_sdk;
-    ShaderCont          m_shaders;
-    AssetCont           m_assets;
-    InstanceCont        m_instances;
-    SRVTable            m_srvtable;
-    RTVTable            m_rtvtable;
-    DrawCommands        m_commands;
+    ID3D11Device            *m_d3ddev;
+    ID3D11DeviceContext     *m_d3dctx;
+    hwSDK                   *m_sdk;
+    ShaderCont              m_shaders;
+    AssetCont               m_assets;
+    InstanceCont            m_instances;
+    SRVTable                m_srvtable;
+    RTVTable                m_rtvtable;
+    DrawCommands            m_commands;
 
     ID3D11DepthStencilState *m_rs_enable_depth;
+    ID3D11Buffer            *m_rs_constant_buffer;
+
+    hwConstantBuffer        m_cb;
 };
 
 #endif // hwContext_h

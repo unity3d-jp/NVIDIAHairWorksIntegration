@@ -24,7 +24,7 @@ typedef void(__stdcall *hwLogCallback)(const char *);
 #define hwFlushEventID 0x14840001
 #define hwMaxLights 4
 
-struct hwLight;
+struct hwLightData;
 class hwContext;
 
 
@@ -63,7 +63,7 @@ hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwInstanceI
 hwCLinkage hwExport void            hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov);
 hwCLinkage hwExport void            hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
 hwCLinkage hwExport void            hwSetShader(hwShaderID sid);
-hwCLinkage hwExport void            hwSetLights(int num_lights, const hwLight *lights);
+hwCLinkage hwExport void            hwSetLights(int num_lights, const hwLightData *lights);
 hwCLinkage hwExport void            hwRender(hwInstanceID iid);
 hwCLinkage hwExport void            hwRenderShadow(hwInstanceID iid);
 hwCLinkage hwExport void            hwStepSimulation(float dt);

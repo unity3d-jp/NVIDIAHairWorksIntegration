@@ -21,6 +21,7 @@ hwContext::hwContext()
     , m_d3dctx(nullptr)
     , m_sdk(nullptr)
     , m_rs_enable_depth(nullptr)
+    , m_rs_constant_buffer(nullptr)
 {
 }
 
@@ -72,6 +73,17 @@ bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
         CD3D11_DEPTH_STENCIL_DESC desc;
         m_d3ddev->CreateDepthStencilState(&desc, &m_rs_enable_depth);
     }
+    {
+        // create constant buffer for hair rendering pixel shader
+        D3D11_BUFFER_DESC desc;
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.ByteWidth = sizeof(hwConstantBuffer);
+        desc.StructureByteStride = 0;
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.MiscFlags = 0;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        m_d3ddev->CreateBuffer(&desc, 0, &m_rs_constant_buffer);
+    }
 
     return true;
 }
@@ -110,31 +122,32 @@ void hwContext::finalize()
 
 }
 
-void hwContext::move(hwContext &o)
+void hwContext::move(hwContext &from)
 {
-#define move(V) o.V = V; V = decltype(V)();
+#define mov(V) V=from.V; from.V=decltype(V)();
 
-    move(m_sdk);
-    move(m_d3dctx);
-    move(m_d3ddev);
+    mov(m_sdk);
+    mov(m_d3dctx);
+    mov(m_d3ddev);
 
-    move(m_shaders);
-    move(m_assets);
-    move(m_instances);
-    move(m_srvtable);
-    move(m_rtvtable);
-    //move(m_commands); // not needed
+    mov(m_shaders);
+    mov(m_assets);
+    mov(m_instances);
+    mov(m_srvtable);
+    mov(m_rtvtable);
+    //mov(m_commands); // not needed
 
-    move(m_rs_enable_depth);
+    mov(m_rs_enable_depth);
+    mov(m_rs_constant_buffer);
 
-#undef move
+#undef mov
 }
 
 
 hwShaderID hwContext::shaderLoadFromFile(const std::string &path)
 {
     {
-        auto i = std::find_if(m_shaders.begin(), m_shaders.end(), [&](const ShaderHolder &v) { return v.path == path; });
+        auto i = std::find_if(m_shaders.begin(), m_shaders.end(), [&](const hwShaderData &v) { return v.path == path; });
         if (i != m_shaders.end() && i->ref_count > 0) {
             ++i->ref_count;
             return i->id;
@@ -147,7 +160,7 @@ hwShaderID hwContext::shaderLoadFromFile(const std::string &path)
         return hwNullID;
     }
 
-    ShaderHolder tmp;
+    hwShaderData tmp;
     tmp.path = path;
     tmp.id = m_shaders.size();
     ++tmp.ref_count;
@@ -169,7 +182,7 @@ void hwContext::shaderRelease(hwShaderID sid)
     auto &v = m_shaders[sid];
     if (v.ref_count > 0 && --v.ref_count == 0) {
         v.shader->Release();
-        v = ShaderHolder();
+        v = hwShaderData();
         hwDebugLog("shaderRelease(%d)\n", sid);
     }
 }
@@ -201,7 +214,7 @@ void hwContext::shaderReload(hwShaderID sid)
 hwAssetID hwContext::assetLoadFromFile(const std::string &path, const hwConversionSettings &conv)
 {
     {
-        auto i = std::find_if(m_assets.begin(), m_assets.end(), [&](const AssetHolder &v) { return v.path == path; });
+        auto i = std::find_if(m_assets.begin(), m_assets.end(), [&](const hwAssetData &v) { return v.path == path; });
         if (i != m_assets.end() && i->ref_count > 0) {
             ++i->ref_count;
             return i->id;
@@ -235,7 +248,7 @@ void hwContext::assetRelease(hwAssetID aid)
         else {
             hwDebugLog("GFSDK_HairSDK::FreeHairAsset(%d) failed.\n", aid);
         }
-        v = AssetHolder();
+        v = hwAssetData();
     }
 }
 
@@ -313,7 +326,7 @@ void hwContext::instanceRelease(hwInstanceID iid)
         }
         else {
             hwDebugLog("GFSDK_HairSDK::FreeHairInstance(%d) failed.\n", iid);
-            v = InstanceHolder();
+            v = hwInstanceData();
         }
     }
 }
@@ -380,7 +393,7 @@ void hwContext::setShader(hwShaderID sid)
     pushDrawCommand(c);
 }
 
-void hwContext::setLights(int num_lights, const hwLight *lights)
+void hwContext::setLights(int num_lights, const hwLightData *lights)
 {
     num_lights = std::min<int>(num_lights, hwMaxLights);
     DrawCommandL c = { CID_SetLights, num_lights };
@@ -459,29 +472,54 @@ void hwContext::setShaderImpl(hwShaderID sid)
     }
 }
 
-void hwContext::setLightsImpl(int num_lights, const hwLight *lights)
+void hwContext::setLightsImpl(int num_lights, const hwLightData *lights)
 {
-    // todo
+    m_cb.num_lights = num_lights;
+    std::copy(lights, lights + num_lights, m_cb.lights);
 }
 
 void hwContext::renderImpl(hwInstanceID iid)
 {
-    ID3D11ShaderResourceView* ppSRV[GFSDK_HAIR_NUM_SHADER_RESOUCES];
-    m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, ppSRV);
-    m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, ppSRV);
-    if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid) != GFSDK_HAIR_RETURN_OK)
+    // update constant buffer
+    {
+        m_sdk->PrepareShaderConstantBuffer((GFSDK_HairInstanceID)iid, &m_cb.hw);
+
+        D3D11_MAPPED_SUBRESOURCE MappedResource;
+        m_d3dctx->Map(m_rs_constant_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+        *((hwConstantBuffer*)MappedResource.pData) = m_cb;
+        m_d3dctx->Unmap(m_rs_constant_buffer, 0);
+
+        m_d3dctx->PSSetConstantBuffers(0, 1, &m_rs_constant_buffer);
+    }
+
+    // set shader resource views
+    {
+        ID3D11ShaderResourceView* SRVs[GFSDK_HAIR_NUM_SHADER_RESOUCES];
+        m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, SRVs);
+        m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, SRVs);
+    }
+
+    // render
+    auto settings = GFSDK_HairShaderSettings(true, false);
+    if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid, &settings) != GFSDK_HAIR_RETURN_OK)
     {
         hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);
     }
+
+    // render indicators
     m_sdk->RenderVisualization((GFSDK_HairInstanceID)iid);
 }
 
 void hwContext::renderShadowImpl(hwInstanceID iid)
 {
+    // set shader resource views
+    {
+        ID3D11ShaderResourceView* SRVs[GFSDK_HAIR_NUM_SHADER_RESOUCES];
+        m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, SRVs);
+        m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, SRVs);
+    }
+
     auto settings = GFSDK_HairShaderSettings(false, true);
-    ID3D11ShaderResourceView* ppSRV[GFSDK_HAIR_NUM_SHADER_RESOUCES];
-    m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, ppSRV);
-    m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, ppSRV);
     if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid, &settings) != GFSDK_HAIR_RETURN_OK)
     {
         hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);
