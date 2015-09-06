@@ -42,7 +42,7 @@ public class HairInstance : MonoBehaviour
     hwAssetID m_aid = hwAssetID.NullID;
     hwInstanceID m_iid = hwInstanceID.NullID;
     Matrix4x4[] m_skinning_matrices;
-    System.IntPtr m_skinning_matrices_ptr;
+    IntPtr m_skinning_matrices_ptr;
 
 
     public int shader_id { get { return m_sid; } }
@@ -84,6 +84,8 @@ public class HairInstance : MonoBehaviour
             HairWorksIntegration.hwAssetRelease(m_aid);
             m_aid = hwAssetID.NullID;
         }
+        m_skinning_matrices = null;
+        m_skinning_matrices_ptr = IntPtr.Zero;
 
         // load & create instance
         if(m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx, ref m_conversion))
@@ -122,6 +124,14 @@ public class HairInstance : MonoBehaviour
         GetInstances().Remove(this);
     }
 
+    void OnEnable()
+    {
+    }
+
+    void OnDisable()
+    {
+    }
+
     void Start()
     {
         LoadHairShader(m_hair_shader);
@@ -130,10 +140,13 @@ public class HairInstance : MonoBehaviour
 
     void Update()
     {
-        if(m_skinning_matrices == null)
+        if(!m_aid) { return; }
+
+        if( m_skinning_matrices == null )
         {
             m_skinning_matrices = new Matrix4x4[HairWorksIntegration.hwAssetGetNumBones(m_aid)];
             m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
+
         }
 
         // todo: gather skinning bones if needed
@@ -190,6 +203,8 @@ public class HairInstance : MonoBehaviour
 
     void Render()
     {
+        if (!m_aid) { return; }
+
         HairWorksIntegration.hwSetShader(m_sid);
         HairWorksIntegration.hwRender(m_iid);
     }

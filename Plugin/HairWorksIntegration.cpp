@@ -1,8 +1,12 @@
 ﻿#include "pch.h"
-#include "HairWorkdIntegration.h"
+#include "HairWorksIntegration.h"
 #include "hwContext.h"
 
-#define hwSDKDLL "GFSDK_HairWorks.win64.dll"
+#if defined(_M_IX86)
+    #define hwSDKDLL "GFSDK_HairWorks.win32.dll"
+#elif defined(_M_X64)
+    #define hwSDKDLL "GFSDK_HairWorks.win64.dll"
+#endif
 
 ID3D11Device *g_d3d11_device = nullptr;
 hwContext *g_hwContext = nullptr;
@@ -53,6 +57,49 @@ hwCLinkage hwExport void UnityRenderEvent(int eventID)
         }
     }
 }
+
+
+hwCLinkage hwExport void hwMoveContext(hwContext *ctx)
+{
+    if (ctx && g_hwContext) {
+        g_hwContext->move(*ctx);
+    }
+}
+typedef void(*hwMoveContextT)(hwContext *ctx);
+
+#if !defined(hwMaster)
+// PatchLibrary で突っ込まれたモジュールは UnitySetGraphicsDevice() が呼ばれないので、
+// DLL_PROCESS_ATTACH のタイミングで先にロードされているモジュールからデバイスをもらって同等の処理を行う。
+BOOL WINAPI DllMain(HINSTANCE module_handle, DWORD reason_for_call, LPVOID reserved)
+{
+    if (reason_for_call == DLL_PROCESS_ATTACH)
+    {
+        if (HMODULE m = ::GetModuleHandleA("HairWorksIntegration.dll")) {
+            auto proc = (hwMoveContextT)::GetProcAddress(m, "hwMoveContext");
+            if (proc) {
+                g_hwContext = new hwContext();
+                proc(g_hwContext);
+                if (!g_hwContext->valid()) {
+                    delete g_hwContext;
+                    g_hwContext = nullptr;
+                }
+            }
+        }
+    }
+    else if (reason_for_call == DLL_PROCESS_DETACH)
+    {
+    }
+    return TRUE;
+}
+
+// "DllMain already defined in MSVCRT.lib" 対策
+#if defined(_M_IX86)
+extern "C" { int __afxForceUSRDLL; }
+#elif defined(_M_X64)
+extern "C" { int _afxForceUSRDLL; }
+#endif
+
+#endif
 
 
 /*hwThreadLocal*/ hwLogCallback g_hwLogCallback;
@@ -273,6 +320,13 @@ hwCLinkage hwExport void hwSetShader(hwShaderID sid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setShader(sid);
+    }
+}
+
+hwCLinkage hwExport void hwSetLights(int num_lights, const hwLight *lights)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->setLights(num_lights, lights);
     }
 }
 

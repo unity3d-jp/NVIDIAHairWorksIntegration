@@ -16,12 +16,15 @@ typedef ID3D11Texture2D hwTexture;
 typedef ID3D11ShaderResourceView hwSRV;
 typedef ID3D11RenderTargetView hwRTV;
 typedef XMMATRIX hwMatrix;
+typedef gfsdk_float3 hwFloat3;
 typedef gfsdk_float4 hwFloat4;
 
 typedef void(__stdcall *hwLogCallback)(const char *);
 #define hwNullID 0xFFFF
 #define hwFlushEventID 0x14840001
+#define hwMaxLights 4
 
+struct hwLight;
 class hwContext;
 
 
@@ -60,6 +63,7 @@ hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwInstanceI
 hwCLinkage hwExport void            hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov);
 hwCLinkage hwExport void            hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
 hwCLinkage hwExport void            hwSetShader(hwShaderID sid);
+hwCLinkage hwExport void            hwSetLights(int num_lights, const hwLight *lights);
 hwCLinkage hwExport void            hwRender(hwInstanceID iid);
 hwCLinkage hwExport void            hwRenderShadow(hwInstanceID iid);
 hwCLinkage hwExport void            hwStepSimulation(float dt);

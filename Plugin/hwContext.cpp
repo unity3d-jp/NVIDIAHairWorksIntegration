@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "HairWorkdIntegration.h"
+#include "HairWorksIntegration.h"
 #include "hwContext.h"
 
 
@@ -29,14 +29,9 @@ hwContext::~hwContext()
     finalize();
 }
 
-hwContext::operator bool() const
+bool hwContext::valid() const
 {
-    return m_sdk != nullptr;
-}
-
-hwSDK* hwContext::getSDK() const
-{
-    return m_sdk;
+    return m_d3ddev!=nullptr && m_d3dctx!=nullptr && m_sdk!=nullptr;
 }
 
 bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
@@ -115,6 +110,25 @@ void hwContext::finalize()
 
 }
 
+void hwContext::move(hwContext &o)
+{
+#define move(V) o.V = V; V = decltype(V)();
+
+    move(m_sdk);
+    move(m_d3dctx);
+    move(m_d3ddev);
+
+    move(m_shaders);
+    move(m_assets);
+    move(m_instances);
+    move(m_srvtable);
+    move(m_rtvtable);
+    //move(m_commands); // not needed
+
+    move(m_rs_enable_depth);
+
+#undef move
+}
 
 
 hwShaderID hwContext::shaderLoadFromFile(const std::string &path)
@@ -366,6 +380,14 @@ void hwContext::setShader(hwShaderID sid)
     pushDrawCommand(c);
 }
 
+void hwContext::setLights(int num_lights, const hwLight *lights)
+{
+    num_lights = std::min<int>(num_lights, hwMaxLights);
+    DrawCommandL c = { CID_SetLights, num_lights };
+    std::copy(lights, lights + num_lights, c.lights);
+    pushDrawCommand(c);
+}
+
 void hwContext::render(hwInstanceID iid)
 {
     if (iid == hwNullID) { return; }
@@ -437,6 +459,11 @@ void hwContext::setShaderImpl(hwShaderID sid)
     }
 }
 
+void hwContext::setLightsImpl(int num_lights, const hwLight *lights)
+{
+    // todo
+}
+
 void hwContext::renderImpl(hwInstanceID iid)
 {
     ID3D11ShaderResourceView* ppSRV[GFSDK_HAIR_NUM_SHADER_RESOUCES];
@@ -486,6 +513,13 @@ void hwContext::flush()
         {
             const auto c = (DrawCommand&)m_commands[i];
             setShaderImpl(c.arg);
+            i += sizeof(c);
+            break;
+        }
+        case CID_SetLights:
+        {
+            const auto c = (DrawCommandL&)m_commands[i];
+            setLightsImpl(c.num_lights, c.lights);
             i += sizeof(c);
             break;
         }

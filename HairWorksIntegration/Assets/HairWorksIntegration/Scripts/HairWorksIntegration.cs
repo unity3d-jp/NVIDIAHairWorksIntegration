@@ -388,6 +388,17 @@ public struct hwConversionSettings
     }
 }
 
+[System.Serializable]
+public struct hwLight
+{
+    public int type;
+    public float range;
+    public Vector3 position;
+    public Vector3 direction;
+    public Color color;
+}
+
+
 public enum hwUpAxis
 {
     Unknown,
@@ -451,8 +462,9 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, IntPtr matrices);
 
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fov);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwSetRenderTarget(System.IntPtr framebuffer, System.IntPtr depthbuffer);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwSetRenderTarget(IntPtr framebuffer, IntPtr depthbuffer);
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetShader(hwShaderID sid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwSetLights(int num_lights, IntPtr lights);
     [DllImport ("HairWorksIntegration")] public static extern void          hwRender(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwRenderShadow(hwInstanceID iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwStepSimulation(float dt);
@@ -464,7 +476,10 @@ public static class HairWorksIntegration
 
     public static void hwSetLogCallback()
     {
-        hwSetLogCallback(LogCallback);
+        if(Application.isEditor)
+        {
+            hwSetLogCallback(LogCallback);
+        }
     }
 
 }

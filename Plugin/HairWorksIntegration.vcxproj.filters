@@ -2,12 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="HairWorkdIntegration.cpp" />
+    <ClCompile Include="HairWorksIntegration.cpp" />
     <ClCompile Include="hwContext.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="HairWorkdIntegration.h" />
+    <ClInclude Include="HairWorksIntegration.h" />
     <ClInclude Include="hwContext.h" />
   </ItemGroup>
   <ItemGroup>

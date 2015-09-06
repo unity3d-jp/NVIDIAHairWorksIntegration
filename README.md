@@ -9,7 +9,7 @@ MAYA や 3ds Max でオーサリングした Hair データを Unity で表示�
 使用には少々面倒な手順が必要です。
 Hair Works SDK は再配布が認められていないため、各自個別に NVIDIA の開発者サイトから入手してプロジェクトへインポートする必要があります。
 以下に手順を記します。  
-(現状 SDK はバージョン 1.1 を前提としています)
+現状 SDK はバージョン 1.1 を前提としています。また、Hair Works の実装の都合上、Windows & D3D11 専用になっています。
 
 1.  [このパッケージ](https://github.com/unity3d-jp/NVIDIAHairWorksIntegration/raw/master/Packages/HairWorksIntegration.unitypackage) をプロジェクトへインポート
 2.  Hair Works SDK を入手
@@ -18,7 +18,7 @@ Hair Works SDK は再配布が認められていないため、各自個別に N
 3.  Hair Works SDK に含まれる必要なデータをプロジェクトへインポート
   * HairWorks-r1-1-212-distro/bin/win64/GFSDK_HairWorks.win64.dll を Assets/HairWorksIntegration/Plugins の中にコピー
 
-プラグインをビルドしたい場合、HairWorks-r1-1-212-distro ディレクトリをまるごと Plugin/Externals の中にコピーしてから Plugin/HairWorksIntegration.sln をビルドします。
+プラグインやシェーダをビルドしたい場合、HairWorks-r1-1-212-distro ディレクトリをまるごと Plugin/Externals の中にコピーしてから Plugin/HairWorksIntegration.sln をビルドします。
 
 todo: コンポーネントとかについて書く
 
@@ -27,7 +27,7 @@ todo: コンポーネントとかについて書く
 これは本プラグインを使用する場合にも適用されます。使用の際はこちらをよく確認してそれに従ってください。  
 [GameWorks SDK EULA](https://developer.nvidia.com/gameworks-sdk-eula)  
 
-(大雑把にまとめると、ゲームの開始画面、マニュアル、プレスリリースなどに NVIDIA Game Works のロゴの表示義務が生じ、加えて商用利用の場合は NVIDIA へその旨を報告する必要がある、といったものです。ライセンス料の類は特にないようです)
+大雑把にまとめると、ゲームの開始画面、マニュアル、プレスリリースなどに [NVIDIA Game Works のロゴ](https://developer.nvidia.com/gameworks-logo) の表示義務が生じ、加えて商用利用の場合は NVIDIA へその旨を報告する必要がある、といったものです。ライセンス料の類は特にないようです。
 
 ## License
 Copyright (C) 2015 Unity Technologies Japan, G.K.
