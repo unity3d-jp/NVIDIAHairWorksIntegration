@@ -450,7 +450,9 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwAssetID aid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetReload(hwAssetID aid);
     [DllImport ("HairWorksIntegration")] public static extern int           hwAssetGetNumBones(hwAssetID aid);
-    [DllImport ("HairWorksIntegration")] public static extern IntPtr        hwAssetGetBoneName(hwAssetID aid, int nth);
+    [DllImport ("HairWorksIntegration")] private static extern IntPtr       hwAssetGetBoneName(hwAssetID aid, int nth);
+    public static string hwAssetGetBoneNameString(hwAssetID aid, int nth) { return Marshal.PtrToStringAnsi(hwAssetGetBoneName(aid, nth)); }
+
     [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneIndices(hwAssetID aid, ref Vector4 o_indices);
     [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneWeights(hwAssetID aid, ref Vector4 o_waits);
     [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetDefaultDescriptor(hwAssetID aid, ref hwDescriptor o_desc);

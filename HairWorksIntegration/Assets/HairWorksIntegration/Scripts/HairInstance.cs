@@ -35,12 +35,15 @@ public class HairInstance : MonoBehaviour
 
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
     public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
+    public Transform m_skinning_root;
     public hwConversionSettings m_conversion = hwConversionSettings.default_value;
     public hwDescriptor m_params = hwDescriptor.default_value;
     public bool m_use_default_descriptor = true;
     hwShaderID m_sid = hwShaderID.NullID;
     hwAssetID m_aid = hwAssetID.NullID;
     hwInstanceID m_iid = hwInstanceID.NullID;
+
+    public Transform[] m_bones;
     Matrix4x4[] m_skinning_matrices;
     IntPtr m_skinning_matrices_ptr;
 
@@ -84,11 +87,9 @@ public class HairInstance : MonoBehaviour
             HairWorksIntegration.hwAssetRelease(m_aid);
             m_aid = hwAssetID.NullID;
         }
-        m_skinning_matrices = null;
-        m_skinning_matrices_ptr = IntPtr.Zero;
 
         // load & create instance
-        if(m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx, ref m_conversion))
+        if (m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx, ref m_conversion))
         {
             m_hair_asset = path_to_apx;
             m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);
@@ -97,6 +98,12 @@ public class HairInstance : MonoBehaviour
                 HairWorksIntegration.hwAssetGetDefaultDescriptor(m_aid, ref m_params);
             }
         }
+
+        // update bone structure
+        m_bones = null;
+        m_skinning_matrices = null;
+        m_skinning_matrices_ptr = IntPtr.Zero;
+        UpdateBones();
     }
 
     public void ReloadHairAsset()
@@ -109,6 +116,56 @@ public class HairInstance : MonoBehaviour
         HairWorksIntegration.hwInstanceSetTexture(m_iid, type, tex.GetNativeTexturePtr());
     }
 
+    public void UpdateBones()
+    {
+        int num_bones = HairWorksIntegration.hwAssetGetNumBones(m_aid);
+        if (m_bones == null || m_bones.Length != num_bones)
+        {
+            m_bones = new Transform[num_bones];
+            m_skinning_matrices = new Matrix4x4[num_bones];
+            m_skinning_matrices_ptr = IntPtr.Zero;
+
+            for (int i = 0; i < num_bones; ++i)
+            {
+                m_skinning_matrices[i] = Matrix4x4.identity;
+            }
+
+            if (m_skinning_root == null)
+            {
+                m_skinning_root = GetComponent<Transform>();
+            }
+
+            var children = m_skinning_root.GetComponentsInChildren<Transform>();
+            for (int i = 0; i < num_bones; ++i)
+            {
+                string name = HairWorksIntegration.hwAssetGetBoneNameString(m_aid, i);
+                m_bones[i] = Array.Find(children, (a) => { return a.name == name; });
+            }
+
+            if (m_bones[0] == null)
+            {
+                m_bones[0] = m_skinning_root;
+            }
+        }
+        if(m_skinning_matrices_ptr == IntPtr.Zero)
+        {
+            m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
+        }
+
+        for (int i = 0; i < m_bones.Length; ++i)
+        {
+            var t = m_bones[i];
+            if (t != null)
+            {
+                m_skinning_matrices[i] = t.localToWorldMatrix;
+
+                //float angle;
+                //Vector3 axis;
+                //t.rotation.ToAngleAxis(out angle, out axis);
+                //m_skinning_matrices[i] = Matrix4x4.TRS(t.position, Quaternion.AngleAxis(angle, axis), t.localScale);
+            }
+        }
+    }
 
 
     void Awake()
@@ -142,19 +199,7 @@ public class HairInstance : MonoBehaviour
     {
         if(!m_aid) { return; }
 
-        if( m_skinning_matrices == null )
-        {
-            m_skinning_matrices = new Matrix4x4[HairWorksIntegration.hwAssetGetNumBones(m_aid)];
-            m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
-
-        }
-
-        // todo: gather skinning bones if needed
-        var m = GetComponent<Transform>().localToWorldMatrix;
-        for (int i=0; i< m_skinning_matrices.Length; ++i) {
-            m_skinning_matrices[i] = m;
-        }
-
+        UpdateBones();
         HairWorksIntegration.hwInstanceSetDescriptor(m_iid, ref m_params);
         HairWorksIntegration.hwInstanceUpdateSkinningMatrices(m_iid, m_skinning_matrices.Length, m_skinning_matrices_ptr);
 
