@@ -57,7 +57,7 @@ public class HairLight : MonoBehaviour
     public Type m_type;
     public float m_range = 5.0f;
     public Color m_color = Color.white;
-    [Range(0.0f, 8.0f)] float m_intensity = 1.0f;
+    [Range(0.0f, 8.0f)] public float m_intensity = 1.0f;
 
     hwLightData m_data;
 
@@ -103,14 +103,32 @@ public class HairLight : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        if(GetComponent<Light>() != null) { return; }
+
         var t = GetComponent<Transform>();
-        Gizmos.DrawIcon(t.position, "DirectionalLight Gizmo", true);
+        switch(m_type)
+        {
+            case Type.Directional:
+                Gizmos.DrawIcon(t.position, "DirectionalLight Gizmo", true);
+                break;
+            case Type.Point:
+                Gizmos.DrawIcon(t.position, "PointLight Gizmo", true);
+                break;
+        }
     }
 
     void OnDrawGizmosSelected()
     {
+        if (GetComponent<Light>() != null) { return; }
+
         var t = GetComponent<Transform>();
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(t.position, t.position + t.forward);
+        switch (m_type)
+        {
+            case Type.Directional:
+                break;
+            case Type.Point:
+                Gizmos.DrawWireSphere(transform.position, m_range);
+                break;
+        }
     }
 }

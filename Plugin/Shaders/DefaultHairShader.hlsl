@@ -7,7 +7,7 @@
 
 struct LightData
 {
-    int4 iparams;   // x: light type
+    int4 type;   // x: light type
     float4 position;// xyz: direction if directional light, position if point light
                     // w: range
     float4 color;
@@ -47,8 +47,18 @@ float4 ps_main(GFSDK_Hair_PixelShaderInput input) : SV_Target
     for (int i = 0; i < g_numLights.x; i++)
     {
         float3 Lcolor = g_lights[i].color.rgb;
-        float3 Ldir = g_lights[i].position.xyz;
-        r.rgb += GFSDK_Hair_ComputeHairShading(Lcolor, Ldir, attr, mat, hairColor);
+        float3 Ldir;
+        float atten = 1.0;
+        if (g_lights[i].type.x == LightType_Directional) {
+            Ldir = g_lights[i].position.xyz;
+        }
+        else if (g_lights[i].type.x == LightType_Point) {
+            float range = g_lights[i].position.w;
+            float3 diff = g_lights[i].position.xyz - attr.P;
+            Ldir = normalize(diff);
+            atten = max(1.0f - dot(diff, diff) / (range*range), 0.0);
+        }
+        r.rgb += GFSDK_Hair_ComputeHairShading(Lcolor, Ldir, attr, mat, hairColor) * atten;
     }
     //r.rgb = saturate(attr.N.xyz)*0.5+0.5;
     return r;

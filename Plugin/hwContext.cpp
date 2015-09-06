@@ -135,10 +135,11 @@ void hwContext::move(hwContext &from)
     mov(m_instances);
     mov(m_srvtable);
     mov(m_rtvtable);
-    //mov(m_commands); // not needed
+    //mov(m_commands);
 
     mov(m_rs_enable_depth);
     mov(m_rs_constant_buffer);
+    //mov(m_cb);
 
 #undef mov
 }
