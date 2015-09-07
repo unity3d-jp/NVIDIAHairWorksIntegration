@@ -144,7 +144,10 @@ public class HairInstance : MonoBehaviour
 
             if (m_bones[0] == null)
             {
-                m_bones[0] = m_skinning_root;
+                for (int i = 0; i < num_bones; ++i)
+                {
+                    m_bones[i] = m_skinning_root;
+                }
             }
         }
         if(m_skinning_matrices_ptr == IntPtr.Zero)
@@ -159,12 +162,29 @@ public class HairInstance : MonoBehaviour
             {
                 m_skinning_matrices[i] = t.localToWorldMatrix;
 
-                //float angle;
-                //Vector3 axis;
-                //t.rotation.ToAngleAxis(out angle, out axis);
-                //m_skinning_matrices[i] = Matrix4x4.TRS(t.position, Quaternion.AngleAxis(angle, axis), t.localScale);
+                //Vector3 position = t.position;
+                //Quaternion rotation = t.rotation;
+                //Vector3 scale = t.localScale;
+                //{
+                //    float angle;
+                //    Vector3 axis;
+                //    rotation.ToAngleAxis(out angle, out axis);
+                //    Swap(ref axis.y, ref axis.z);
+                //    //angle *= -1.0f;
+
+                //    rotation = Quaternion.AngleAxis(angle, axis);
+                //}
+                ////m_skinning_matrices[i] = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
+                //m_skinning_matrices[i] = Matrix4x4.identity;
             }
         }
+    }
+
+    static public void Swap<T>(ref T a, ref T b)
+    {
+        T tmp = a;
+        a = b;
+        b = tmp;
     }
 
 

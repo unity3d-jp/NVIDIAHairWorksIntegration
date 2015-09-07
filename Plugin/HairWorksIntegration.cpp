@@ -294,7 +294,7 @@ hwCLinkage hwExport void hwInstanceSetTexture(hwHInstance iid, hwTextureType typ
         ctx->instanceSetTexture(iid, type, tex);
     }
 }
-hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, const hwMatrix *matrices)
+hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, hwMatrix *matrices)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceUpdateSkinningMatrices(iid, num_matrices, matrices);

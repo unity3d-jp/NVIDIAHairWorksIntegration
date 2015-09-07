@@ -257,6 +257,16 @@ hwHAsset hwContext::assetLoadFromFile(const std::string &path, const hwConversio
     v.path = path;
     if (m_sdk->LoadHairAssetFromFile(path.c_str(), &v.aid, nullptr, &settings) == GFSDK_HAIR_RETURN_OK) {
         v.ref_count = 1;
+
+        uint32_t num_bones;
+        m_sdk->GetNumBones(v.aid, &num_bones);
+        v.m_inv_bindpose.resize(num_bones);
+        for (int i = 0; i < num_bones; ++i) {
+            XMMATRIX m;
+            m_sdk->GetBindPose(v.aid, i, (hwMatrix*)&m);
+            (XMMATRIX&)v.m_inv_bindpose[i] = XMMatrixInverse(nullptr, m);
+        }
+
         hwDebugLog("GFSDK_HairSDK::LoadHairAssetFromFile(\"%s\") : %d succeeded.\n", path.c_str(), v.handle);
         return v.handle;
     }
@@ -368,6 +378,7 @@ hwHInstance hwContext::instanceCreate(hwHAsset ha)
     if (ha >= m_assets.size()) { return hwNullHandle; }
 
     hwInstanceData& v = newInstanceData();
+    v.hasset = ha;
     if (m_sdk->CreateHairInstance(m_assets[ha].aid, &v.iid) == GFSDK_HAIR_RETURN_OK) {
         hwDebugLog("GFSDK_HairSDK::CreateHairInstance(%d) : %d succeeded.\n", ha, v.handle);
     }
@@ -427,12 +438,20 @@ void hwContext::instanceSetTexture(hwHInstance hi, hwTextureType type, hwTexture
     }
 }
 
-void hwContext::instanceUpdateSkinningMatrices(hwHInstance hi, int num_matrices, const hwMatrix *matrices)
+void hwContext::instanceUpdateSkinningMatrices(hwHInstance hi, int num_matrices, hwMatrix *matrices)
 {
     if (hi >= m_instances.size()) { return; }
     auto &v = m_instances[hi];
 
-    if (m_sdk->UpdateSkinningMatrices(v.iid, num_matrices, (const gfsdk_float4x4*)matrices) != GFSDK_HAIR_RETURN_OK)
+    //const auto inv_bindpose = m_assets[v.hasset].m_inv_bindpose;
+    //for (int i = 0; i < num_matrices; ++i) {
+    //    XMMATRIX m1 = (XMMATRIX&)inv_bindpose[i];
+    //    XMMATRIX m2 = (XMMATRIX&)matrices[i];
+    //    m1 = XMMatrixMultiply(m1, m2);
+    //    matrices[i] = (hwMatrix&)m1;
+    //}
+
+    if (m_sdk->UpdateSkinningMatrices(v.iid, num_matrices, matrices) != GFSDK_HAIR_RETURN_OK)
     {
         hwDebugLog("GFSDK_HairSDK::UpdateSkinningMatrices(%d) failed.\n", hi);
     }

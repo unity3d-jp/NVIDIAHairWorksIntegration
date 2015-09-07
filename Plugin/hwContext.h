@@ -20,6 +20,7 @@ struct hwAssetData
     hwAssetID aid;
     std::string path;
     hwConversionSettings settings;
+    std::vector<hwMatrix> m_inv_bindpose;
 
     hwAssetData() : handle(hwNullHandle), aid(hwNullAssetID), ref_count(0) {}
     void invalidate() { ref_count = 0; aid = hwNullAssetID; path.clear(); }
@@ -30,11 +31,12 @@ struct hwInstanceData
 {
     hwHInstance handle;
     hwInstanceID iid;
+    hwHAsset hasset;
     bool cast_shadow;
     bool receive_shadow;
 
-    hwInstanceData() : handle(hwNullHandle), iid(hwNullInstanceID), cast_shadow(false), receive_shadow(false) {}
-    void invalidate() { iid = hwNullInstanceID; cast_shadow = false; receive_shadow = false; }
+    hwInstanceData() : handle(hwNullHandle), iid(hwNullInstanceID), hasset(hwNullHandle), cast_shadow(false), receive_shadow(false) {}
+    void invalidate() { iid = hwNullInstanceID; hasset = hwNullAssetID; cast_shadow = false; receive_shadow = false; }
     operator bool() const { return iid != hwNullInstanceID; }
 };
 
@@ -138,7 +140,7 @@ public:
     void            instanceGetDescriptor(hwHInstance iid, hwHairDescriptor &desc) const;
     void            instanceSetDescriptor(hwHInstance iid, const hwHairDescriptor &desc);
     void            instanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex);
-    void            instanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, const hwMatrix *matrices);
+    void            instanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, hwMatrix *matrices);
 
     void setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov);
     void setRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);

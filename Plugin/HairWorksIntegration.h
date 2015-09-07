@@ -13,7 +13,7 @@ typedef ID3D11Texture2D                 hwTexture;
 typedef ID3D11ShaderResourceView        hwSRV;
 typedef ID3D11RenderTargetView          hwRTV;
 
-typedef XMMATRIX        hwMatrix;
+typedef gfsdk_float4x4  hwMatrix;
 typedef gfsdk_float3    hwFloat3;
 typedef gfsdk_float4    hwFloat4;
 typedef uint32_t        hwHShader;      // H stands for Handle
@@ -65,7 +65,7 @@ hwCLinkage hwExport void            hwInstanceGetAssetID(hwHInstance iid);
 hwCLinkage hwExport void            hwInstanceGetDescriptor(hwHInstance iid, hwHairDescriptor *o_desc);
 hwCLinkage hwExport void            hwInstanceSetDescriptor(hwHInstance iid, const hwHairDescriptor *desc);
 hwCLinkage hwExport void            hwInstanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex);
-hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, const hwMatrix *matrices);
+hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, hwMatrix *matrices);
 
 hwCLinkage hwExport void            hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov);
 hwCLinkage hwExport void            hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
