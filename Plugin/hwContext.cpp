@@ -258,15 +258,6 @@ hwHAsset hwContext::assetLoadFromFile(const std::string &path, const hwConversio
     if (m_sdk->LoadHairAssetFromFile(path.c_str(), &v.aid, nullptr, &settings) == GFSDK_HAIR_RETURN_OK) {
         v.ref_count = 1;
 
-        uint32_t num_bones;
-        m_sdk->GetNumBones(v.aid, &num_bones);
-        v.m_inv_bindpose.resize(num_bones);
-        for (int i = 0; i < num_bones; ++i) {
-            XMMATRIX m;
-            m_sdk->GetBindPose(v.aid, i, (hwMatrix*)&m);
-            (XMMATRIX&)v.m_inv_bindpose[i] = XMMatrixInverse(nullptr, m);
-        }
-
         hwDebugLog("GFSDK_HairSDK::LoadHairAssetFromFile(\"%s\") : %d succeeded.\n", path.c_str(), v.handle);
         return v.handle;
     }
@@ -342,12 +333,21 @@ void hwContext::assetGetBoneIndices(hwHAsset ha, hwFloat4 &o_indices) const
     }
 }
 
-void hwContext::assetGetBoneWeights(hwHAsset ha, hwFloat4 &o_waits) const
+void hwContext::assetGetBoneWeights(hwHAsset ha, hwFloat4 &o_weight) const
 {
     if (ha >= m_assets.size()) { return; }
 
-    if (m_sdk->GetBoneWeights(m_assets[ha].aid, &o_waits) != GFSDK_HAIR_RETURN_OK) {
+    if (m_sdk->GetBoneWeights(m_assets[ha].aid, &o_weight) != GFSDK_HAIR_RETURN_OK) {
         hwDebugLog("GFSDK_HairSDK::GetBoneWeights(%d) failed.\n", ha);
+    }
+}
+
+void hwContext::assetGetBindPose(hwHAsset ha, int nth, hwMatrix &o_mat)
+{
+    if (ha >= m_assets.size()) { return; }
+
+    if (m_sdk->GetBindPose(m_assets[ha].aid, nth, &o_mat) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetBindPose(%d, %d) failed.\n", ha, nth);
     }
 }
 
@@ -438,25 +438,27 @@ void hwContext::instanceSetTexture(hwHInstance hi, hwTextureType type, hwTexture
     }
 }
 
-void hwContext::instanceUpdateSkinningMatrices(hwHInstance hi, int num_matrices, hwMatrix *matrices)
+void hwContext::instanceUpdateSkinningMatrices(hwHInstance hi, int num_bones, hwMatrix *matrices)
 {
     if (hi >= m_instances.size()) { return; }
     auto &v = m_instances[hi];
 
-    //const auto inv_bindpose = m_assets[v.hasset].m_inv_bindpose;
-    //for (int i = 0; i < num_matrices; ++i) {
-    //    XMMATRIX m1 = (XMMATRIX&)inv_bindpose[i];
-    //    XMMATRIX m2 = (XMMATRIX&)matrices[i];
-    //    m1 = XMMatrixMultiply(m1, m2);
-    //    matrices[i] = (hwMatrix&)m1;
-    //}
-
-    if (m_sdk->UpdateSkinningMatrices(v.iid, num_matrices, matrices) != GFSDK_HAIR_RETURN_OK)
+    if (m_sdk->UpdateSkinningMatrices(v.iid, num_bones, matrices) != GFSDK_HAIR_RETURN_OK)
     {
         hwDebugLog("GFSDK_HairSDK::UpdateSkinningMatrices(%d) failed.\n", hi);
     }
 }
 
+void hwContext::instanceUpdateSkinningDQs(hwHInstance hi, int num_bones, hwDQuaternion *dqs)
+{
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
+    if (m_sdk->UpdateSkinningDQs(v.iid, num_bones, dqs) != GFSDK_HAIR_RETURN_OK)
+    {
+        hwDebugLog("GFSDK_HairSDK::UpdateSkinningDQs(%d) failed.\n", hi);
+    }
+}
 
 
 template<class T>

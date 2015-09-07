@@ -435,6 +435,25 @@ public enum hwTextureType
     NUM_TEXTURES
 };
 
+[System.Serializable]
+public struct hwDQuaternion
+{
+    public Quaternion q1;
+    public Quaternion q2;
+
+    public hwDQuaternion(Quaternion q, Vector3 t)
+    {
+        q1 = q;
+        q2 = new Quaternion(
+            0.5f * ( t.x * q.w + t.y * q.z - t.z * q.y),
+            0.5f * (-t.x * q.z + t.y * q.w + t.z * q.x),
+            0.5f * ( t.x * q.y - t.y * q.x + t.z * q.w),
+            0.5f * (-t.x * q.x - t.y * q.y - t.z * q.z) );
+    }
+
+    static public hwDQuaternion identity { get { return new hwDQuaternion(Quaternion.identity, Vector3.zero); } }
+}
+
 
 public static class HairWorksIntegration
 {
@@ -442,11 +461,11 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern int           hwGetFlushEventID();
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetLogCallback(hwLogCallback cb);
 
-    [DllImport ("HairWorksIntegration")] public static extern hwHShader    hwShaderLoadFromFile(string path);
+    [DllImport ("HairWorksIntegration")] public static extern hwHShader     hwShaderLoadFromFile(string path);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwHShader sid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderReload(hwHShader sid);
 
-    [DllImport ("HairWorksIntegration")] public static extern hwHAsset     hwAssetLoadFromFile(string path, ref hwConversionSettings conv);
+    [DllImport ("HairWorksIntegration")] public static extern hwHAsset      hwAssetLoadFromFile(string path, ref hwConversionSettings conv);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwHAsset aid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetReload(hwHAsset aid);
     [DllImport ("HairWorksIntegration")] public static extern int           hwAssetGetNumBones(hwHAsset aid);
@@ -454,16 +473,19 @@ public static class HairWorksIntegration
     public static string hwAssetGetBoneNameString(hwHAsset aid, int nth) { return Marshal.PtrToStringAnsi(hwAssetGetBoneName(aid, nth)); }
 
     [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneIndices(hwHAsset aid, ref Vector4 o_indices);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneWeights(hwHAsset aid, ref Vector4 o_waits);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneWeights(hwHAsset aid, ref Vector4 o_weight);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBindPose(hwHAsset aid, int nth, ref Matrix4x4 o_bindpose);
+
     [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetDefaultDescriptor(hwHAsset aid, ref hwDescriptor o_desc);
 
 
-    [DllImport ("HairWorksIntegration")] public static extern hwHInstance  hwInstanceCreate(hwHAsset aid);
+    [DllImport ("HairWorksIntegration")] public static extern hwHInstance   hwInstanceCreate(hwHAsset aid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwInstanceRelease(hwHInstance iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetDescriptor(hwHInstance iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetDescriptor(hwHInstance iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetTexture(hwHInstance iid, hwTextureType type, IntPtr tex);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, IntPtr matrices);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_bones, IntPtr matrices);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bones, IntPtr dqs);
 
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fov);
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetRenderTarget(IntPtr framebuffer, IntPtr depthbuffer);

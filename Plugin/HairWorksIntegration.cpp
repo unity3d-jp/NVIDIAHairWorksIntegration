@@ -248,10 +248,17 @@ hwCLinkage hwExport void hwAssetGetBoneIndices(hwHAsset aid, hwFloat4 &o_indices
     }
 }
 
-hwCLinkage hwExport void hwAssetGetBoneWeights(hwHAsset aid, hwFloat4 &o_waits)
+hwCLinkage hwExport void hwAssetGetBoneWeights(hwHAsset aid, hwFloat4 &o_weight)
 {
     if (auto ctx = hwGetContext()) {
-        ctx->assetGetBoneWeights(aid, o_waits);
+        ctx->assetGetBoneWeights(aid, o_weight);
+    }
+}
+
+hwCLinkage hwExport void hwAssetGetBindPose(hwHAsset aid, int nth, hwMatrix &o_mat)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->assetGetBindPose(aid, nth, o_mat);
     }
 }
 
@@ -294,10 +301,16 @@ hwCLinkage hwExport void hwInstanceSetTexture(hwHInstance iid, hwTextureType typ
         ctx->instanceSetTexture(iid, type, tex);
     }
 }
-hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, hwMatrix *matrices)
+hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_bones, hwMatrix *matrices)
 {
     if (auto ctx = hwGetContext()) {
-        ctx->instanceUpdateSkinningMatrices(iid, num_matrices, matrices);
+        ctx->instanceUpdateSkinningMatrices(iid, num_bones, matrices);
+    }
+}
+hwCLinkage hwExport void hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bones, hwDQuaternion *dqs)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->instanceUpdateSkinningDQs(iid, num_bones, dqs);
     }
 }
 

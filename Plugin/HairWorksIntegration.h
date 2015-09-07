@@ -13,12 +13,13 @@ typedef ID3D11Texture2D                 hwTexture;
 typedef ID3D11ShaderResourceView        hwSRV;
 typedef ID3D11RenderTargetView          hwRTV;
 
-typedef gfsdk_float4x4  hwMatrix;
-typedef gfsdk_float3    hwFloat3;
-typedef gfsdk_float4    hwFloat4;
-typedef uint32_t        hwHShader;      // H stands for Handle
-typedef uint32_t        hwHAsset;       // 
-typedef uint32_t        hwHInstance;    // 
+typedef gfsdk_float3            hwFloat3;
+typedef gfsdk_float4            hwFloat4;
+typedef gfsdk_dualquaternion    hwDQuaternion;
+typedef gfsdk_float4x4          hwMatrix;
+typedef uint32_t                hwHShader;      // H stands for Handle
+typedef uint32_t                hwHAsset;       // 
+typedef uint32_t                hwHInstance;    // 
 
 typedef void(__stdcall *hwLogCallback)(const char *);
 #define hwNullAssetID       GFSDK_HairAssetID_NULL
@@ -56,7 +57,8 @@ hwCLinkage hwExport void            hwAssetReload(hwHAsset aid);
 hwCLinkage hwExport int             hwAssetGetNumBones(hwHAsset aid);
 hwCLinkage hwExport const char*     hwAssetGetBoneName(hwHAsset aid, int nth);
 hwCLinkage hwExport void            hwAssetGetBoneIndices(hwHAsset aid, hwFloat4 &o_indices);
-hwCLinkage hwExport void            hwAssetGetBoneWeights(hwHAsset aid, hwFloat4 &o_waits);
+hwCLinkage hwExport void            hwAssetGetBoneWeights(hwHAsset aid, hwFloat4 &o_weight);
+hwCLinkage hwExport void            hwAssetGetBindPose(hwHAsset aid, int nth, hwMatrix &o_mat);
 hwCLinkage hwExport void            hwAssetGetDefaultDescriptor(hwHAsset aid, hwHairDescriptor &o_desc);
 
 hwCLinkage hwExport hwHInstance     hwInstanceCreate(hwHAsset aid);
@@ -65,7 +67,8 @@ hwCLinkage hwExport void            hwInstanceGetAssetID(hwHInstance iid);
 hwCLinkage hwExport void            hwInstanceGetDescriptor(hwHInstance iid, hwHairDescriptor *o_desc);
 hwCLinkage hwExport void            hwInstanceSetDescriptor(hwHInstance iid, const hwHairDescriptor *desc);
 hwCLinkage hwExport void            hwInstanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex);
-hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, hwMatrix *matrices);
+hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_bones, hwMatrix *matrices);
+hwCLinkage hwExport void            hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bones, hwDQuaternion *dqs);
 
 hwCLinkage hwExport void            hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov);
 hwCLinkage hwExport void            hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
