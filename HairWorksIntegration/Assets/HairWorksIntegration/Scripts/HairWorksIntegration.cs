@@ -9,49 +9,49 @@ using UnityEditor;
 #endif
 
 [System.Serializable]
-public struct hwShaderID
+public struct hwHShader
 {
-    public static hwShaderID NullID = new hwShaderID(0xFFFF);
+    public static hwHShader NullHandle = new hwHShader(0xFFFFFFFF);
 
-    public int id;
+    public uint id;
 
-    public hwShaderID(int v) { this.id = v; }
-    public static implicit operator hwShaderID(int v) { return new hwShaderID(v); }
-    public static implicit operator int (hwShaderID v) { return v.id; }
-    public static implicit operator bool (hwShaderID v) { return v.id != 0xFFFF; }
+    public hwHShader(uint v) { this.id = v; }
+    public static implicit operator hwHShader(uint v) { return new hwHShader(v); }
+    public static implicit operator uint (hwHShader v) { return v.id; }
+    public static implicit operator bool (hwHShader v) { return v.id != 0xFFFFFFFF; }
 }
 
 [System.Serializable]
-public struct hwAssetID
+public struct hwHAsset
 {
-    public static hwAssetID NullID = new hwAssetID(0xFFFF);
+    public static hwHAsset NullHandle = new hwHAsset(0xFFFFFFFF);
 
-    public int id;
+    public uint id;
 
-    public hwAssetID(int v) { this.id = v; }
-    public static implicit operator hwAssetID(int v) { return new hwAssetID(v); }
-    public static implicit operator int (hwAssetID v) { return v.id; }
-    public static implicit operator bool (hwAssetID v) { return v.id != 0xFFFF; }
+    public hwHAsset(uint v) { this.id = v; }
+    public static implicit operator hwHAsset(uint v) { return new hwHAsset(v); }
+    public static implicit operator uint (hwHAsset v) { return v.id; }
+    public static implicit operator bool (hwHAsset v) { return v.id != 0xFFFFFFFF; }
 }
 
 [System.Serializable]
-public struct hwInstanceID
+public struct hwHInstance
 {
-    public static hwInstanceID NullID = new hwInstanceID(0xFFFF);
+    public static hwHInstance NullHandle = new hwHInstance(0xFFFFFFFF);
 
-    public int id;
+    public uint id;
 
-    public hwInstanceID(int v) { this.id = v; }
-    public static implicit operator hwInstanceID(int v) { return new hwInstanceID(v); }
-    public static implicit operator int (hwInstanceID v) { return v.id; }
-    public static implicit operator bool (hwInstanceID v) { return v.id != 0xFFFF; }
+    public hwHInstance(uint v) { this.id = v; }
+    public static implicit operator hwHInstance(uint v) { return new hwHInstance(v); }
+    public static implicit operator uint (hwHInstance v) { return v.id; }
+    public static implicit operator bool (hwHInstance v) { return v.id != 0xFFFFFFFF; }
 }
 
-// C# ‚Å‚Í bool ‚Í 1 byte ‚È‚Ì‚É marshaling ‚ÌÛ‚Í 4 byte ‚Ìƒf[ƒ^‚É•ÏŠ·‚³‚ê‚éB
-// (WinAPI ‚Ì BOOL = 4 byte ‚Ö‚Ì•ÏŠ·‚ğˆÓ}‚µ‚Ä‚¢‚é‚½‚ß‚ç‚µ‚¢)
-// ˆê•û C++ ‚Ì bool ‚ÍA•W€‚ÍƒTƒCƒY‚ğ‹K’è‚µ‚Ä‚¢‚È‚¢‚à‚Ì‚ÌA‘å’ï 1 byte ‚Å‚ ‚èAVisualC++ ‚Å‚à‚»‚¤‚È‚Á‚Ä‚¢‚éB
-// ‚±‚Ìˆá‚¢‚ğ–„‚ß‚é‚½‚ßAbool ‚Í [MarshalAs(UnmanagedType.I1)] ‚Å 1 byte ƒf[ƒ^‚Æ‚µ‚Ä marshaling ‚³‚¹‚é•K—v‚ª‚ ‚éB
-// ‚±‚ê‚ğ‘Ó‚é‚ÆAbool ‚ª˜A‘±‚·‚éƒtƒB[ƒ‹ƒh‚ª‚ ‚é struct ‚Í C# ‘¤‚Æ C++ ‘¤‚Å\‘¢‚ªƒYƒŒ‚é‚±‚Æ‚É‚È‚éB
+// C# ã§ã¯ bool ã¯ 1 byte ãªã®ã« marshaling ã®éš›ã¯ 4 byte ã®ãƒ‡ãƒ¼ã‚¿ã«å¤‰æ›ã•ã‚Œã‚‹ã€‚
+// (WinAPI ã® BOOL = 4 byte ã¸ã®å¤‰æ›ã‚’æ„å›³ã—ã¦ã„ã‚‹ãŸã‚ã‚‰ã—ã„)
+// ä¸€æ–¹ C++ ã® bool ã¯ã€æ¨™æº–ã¯ã‚µã‚¤ã‚ºã‚’è¦å®šã—ã¦ã„ãªã„ã‚‚ã®ã®ã€å¤§æŠµ 1 byte ã§ã‚ã‚Šã€VisualC++ ã§ã‚‚ãã†ãªã£ã¦ã„ã‚‹ã€‚
+// ã“ã®é•ã„ã‚’åŸ‹ã‚ã‚‹ãŸã‚ã€bool ã¯ [MarshalAs(UnmanagedType.I1)] ã§ 1 byte ãƒ‡ãƒ¼ã‚¿ã¨ã—ã¦ marshaling ã•ã›ã‚‹å¿…è¦ãŒã‚ã‚‹ã€‚
+// ã“ã‚Œã‚’æ€ ã‚‹ã¨ã€bool ãŒé€£ç¶šã™ã‚‹ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ãŒã‚ã‚‹ struct ã¯ C# å´ã¨ C++ å´ã§æ§‹é€ ãŒã‚ºãƒ¬ã‚‹ã“ã¨ã«ãªã‚‹ã€‚
 // ( http://stackoverflow.com/questions/9766403/structlayout-pack-1-doesnt-work-with-bool via @Tan90909090 )
 [System.Serializable]
 public unsafe struct hwDescriptor
@@ -442,35 +442,35 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern int           hwGetFlushEventID();
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetLogCallback(hwLogCallback cb);
 
-    [DllImport ("HairWorksIntegration")] public static extern hwShaderID    hwShaderLoadFromFile(string path);
-    [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwShaderID sid);
-    [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderReload(hwShaderID sid);
+    [DllImport ("HairWorksIntegration")] public static extern hwHShader    hwShaderLoadFromFile(string path);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwHShader sid);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderReload(hwHShader sid);
 
-    [DllImport ("HairWorksIntegration")] public static extern hwAssetID     hwAssetLoadFromFile(string path, ref hwConversionSettings conv);
-    [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwAssetID aid);
-    [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetReload(hwAssetID aid);
-    [DllImport ("HairWorksIntegration")] public static extern int           hwAssetGetNumBones(hwAssetID aid);
-    [DllImport ("HairWorksIntegration")] private static extern IntPtr       hwAssetGetBoneName(hwAssetID aid, int nth);
-    public static string hwAssetGetBoneNameString(hwAssetID aid, int nth) { return Marshal.PtrToStringAnsi(hwAssetGetBoneName(aid, nth)); }
+    [DllImport ("HairWorksIntegration")] public static extern hwHAsset     hwAssetLoadFromFile(string path, ref hwConversionSettings conv);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwHAsset aid);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetReload(hwHAsset aid);
+    [DllImport ("HairWorksIntegration")] public static extern int           hwAssetGetNumBones(hwHAsset aid);
+    [DllImport ("HairWorksIntegration")] private static extern IntPtr       hwAssetGetBoneName(hwHAsset aid, int nth);
+    public static string hwAssetGetBoneNameString(hwHAsset aid, int nth) { return Marshal.PtrToStringAnsi(hwAssetGetBoneName(aid, nth)); }
 
-    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneIndices(hwAssetID aid, ref Vector4 o_indices);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneWeights(hwAssetID aid, ref Vector4 o_waits);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetDefaultDescriptor(hwAssetID aid, ref hwDescriptor o_desc);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneIndices(hwHAsset aid, ref Vector4 o_indices);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetBoneWeights(hwHAsset aid, ref Vector4 o_waits);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwAssetGetDefaultDescriptor(hwHAsset aid, ref hwDescriptor o_desc);
 
 
-    [DllImport ("HairWorksIntegration")] public static extern hwInstanceID  hwInstanceCreate(hwAssetID aid);
-    [DllImport ("HairWorksIntegration")] public static extern bool          hwInstanceRelease(hwInstanceID iid);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetDescriptor(hwInstanceID iid, ref hwDescriptor desc);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, IntPtr tex);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, IntPtr matrices);
+    [DllImport ("HairWorksIntegration")] public static extern hwHInstance  hwInstanceCreate(hwHAsset aid);
+    [DllImport ("HairWorksIntegration")] public static extern bool          hwInstanceRelease(hwHInstance iid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetDescriptor(hwHInstance iid, ref hwDescriptor desc);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetDescriptor(hwHInstance iid, ref hwDescriptor desc);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetTexture(hwHInstance iid, hwTextureType type, IntPtr tex);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, IntPtr matrices);
 
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fov);
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetRenderTarget(IntPtr framebuffer, IntPtr depthbuffer);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwSetShader(hwShaderID sid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwSetShader(hwHShader sid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetLights(int num_lights, IntPtr lights);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwRender(hwInstanceID iid);
-    [DllImport ("HairWorksIntegration")] public static extern void          hwRenderShadow(hwInstanceID iid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwRender(hwHInstance iid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwRenderShadow(hwHInstance iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwStepSimulation(float dt);
 
     static void LogCallback(System.IntPtr cstr)

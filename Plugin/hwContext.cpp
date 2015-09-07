@@ -3,6 +3,13 @@
 #include "hwContext.h"
 
 
+bool operator==(const hwConversionSettings &a, const hwConversionSettings &b)
+{
+#define cmp(V) a.V==b.V
+    return cmp(m_targetUpAxisHint) && cmp(m_targetHandednessHint) && cmp(m_pConversionMatrix) && cmp(m_targetSceneUnit);
+#undef cmp
+}
+
 bool hwFileToString(std::string &o_buf, const char *path)
 {
     std::ifstream f(path, std::ios::binary);
@@ -90,13 +97,13 @@ bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
 
 void hwContext::finalize()
 {
-    for (auto &i : m_instances) { instanceRelease(i.id); }
+    for (auto &i : m_instances) { instanceRelease(i.handle); }
     m_instances.clear();
 
-    for (auto &i : m_assets) { assetRelease(i.id); }
+    for (auto &i : m_assets) { assetRelease(i.handle); }
     m_assets.clear();
 
-    for (auto &i : m_shaders) { shaderRelease(i.id); }
+    for (auto &i : m_shaders) { shaderRelease(i.handle); }
     m_shaders.clear();
 
     for (auto &i : m_srvtable) { i.second->Release(); }
@@ -145,66 +152,77 @@ void hwContext::move(hwContext &from)
 }
 
 
-hwShaderID hwContext::shaderLoadFromFile(const std::string &path)
+hwShaderData& hwContext::newShaderData()
+{
+    auto i = std::find_if(m_shaders.begin(), m_shaders.end(), [](const hwShaderData &v) { return !v; });
+    if (i != m_shaders.end()) { return *i; }
+
+    hwShaderData tmp;
+    tmp.handle = m_shaders.size();
+    m_shaders.push_back(tmp);
+    return m_shaders.back();
+}
+
+hwHShader hwContext::shaderLoadFromFile(const std::string &path)
 {
     {
         auto i = std::find_if(m_shaders.begin(), m_shaders.end(), [&](const hwShaderData &v) { return v.path == path; });
         if (i != m_shaders.end() && i->ref_count > 0) {
             ++i->ref_count;
-            return i->id;
+            return i->handle;
         }
     }
 
     std::string bin;
     if (!hwFileToString(bin, path.c_str())) {
         hwDebugLog("failed to load shader (%s)\n", path.c_str());
-        return hwNullID;
+        return hwNullHandle;
     }
 
-    hwShaderData tmp;
-    tmp.path = path;
-    tmp.id = m_shaders.size();
-    ++tmp.ref_count;
-    if (SUCCEEDED(m_d3ddev->CreatePixelShader(&bin[0], bin.size(), nullptr, &tmp.shader))) {
-        m_shaders.push_back(tmp);
-        hwDebugLog("CreatePixelShader(%s) : %d succeeded.\n", path.c_str(), tmp.id);
-        return (hwShaderID)tmp.id;
+    hwShaderData& v = newShaderData();
+    v.path = path;
+    if (SUCCEEDED(m_d3ddev->CreatePixelShader(&bin[0], bin.size(), nullptr, &v.shader))) {
+        v.ref_count = 1;
+        hwDebugLog("CreatePixelShader(%s) : %d succeeded.\n", path.c_str(), v.handle);
+        return v.handle;
     }
     else {
         hwDebugLog("CreatePixelShader(%s) failed.\n", path.c_str());
     }
-    return hwNullID;
+    return hwNullHandle;
 }
 
-void hwContext::shaderRelease(hwShaderID sid)
+void hwContext::shaderRelease(hwHShader hs)
 {
-    if (sid >= m_shaders.size()) { return; }
+    if (hs >= m_shaders.size()) { return; }
 
-    auto &v = m_shaders[sid];
+    auto &v = m_shaders[hs];
     if (v.ref_count > 0 && --v.ref_count == 0) {
         v.shader->Release();
-        v = hwShaderData();
-        hwDebugLog("shaderRelease(%d)\n", sid);
+        v.invalidate();
+        hwDebugLog("shaderRelease(%d)\n", hs);
     }
 }
 
-void hwContext::shaderReload(hwShaderID sid)
+void hwContext::shaderReload(hwHShader hs)
 {
-    if (sid >= m_shaders.size()) { return; }
+    if (hs >= m_shaders.size()) { return; }
 
-    auto &v = m_shaders[sid];
+    auto &v = m_shaders[hs];
+    // release existing shader
     if (v.shader) {
         v.shader->Release();
         v.shader = nullptr;
     }
 
+    // reload
     std::string bin;
     if (!hwFileToString(bin, v.path.c_str())) {
         hwDebugLog("failed to reload shader (%s)\n", v.path.c_str());
         return;
     }
     if (SUCCEEDED(m_d3ddev->CreatePixelShader(&bin[0], bin.size(), nullptr, &v.shader))) {
-        hwDebugLog("CreatePixelShader(%s) : %d reloaded.\n", v.path.c_str(), v.id);
+        hwDebugLog("CreatePixelShader(%s) : %d reloaded.\n", v.path.c_str(), v.handle);
     }
     else {
         hwDebugLog("CreatePixelShader(%s) failed to reload.\n", v.path.c_str());
@@ -212,157 +230,211 @@ void hwContext::shaderReload(hwShaderID sid)
 }
 
 
-hwAssetID hwContext::assetLoadFromFile(const std::string &path, const hwConversionSettings &conv)
+hwAssetData& hwContext::newAssetData()
+{
+    auto i = std::find_if(m_assets.begin(), m_assets.end(), [](const hwAssetData &v) { return !v; });
+    if (i != m_assets.end()) { return *i; }
+
+    hwAssetData tmp;
+    tmp.handle = m_assets.size();
+    m_assets.push_back(tmp);
+    return m_assets.back();
+}
+
+hwHAsset hwContext::assetLoadFromFile(const std::string &path, const hwConversionSettings &settings)
 {
     {
-        auto i = std::find_if(m_assets.begin(), m_assets.end(), [&](const hwAssetData &v) { return v.path == path; });
+        auto i = std::find_if(m_assets.begin(), m_assets.end(),
+            [&](const hwAssetData &v) { return v.path == path && v.settings==settings; });
         if (i != m_assets.end() && i->ref_count > 0) {
             ++i->ref_count;
-            return i->id;
+            return i->aid;
         }
     }
 
-    hwAssetID aid = hwNullID;
-    if (m_sdk->LoadHairAssetFromFile(path.c_str(), (GFSDK_HairAssetID*)&aid, nullptr, &conv) == GFSDK_HAIR_RETURN_OK) {
-        m_assets.resize(std::max<int>(m_assets.size(), aid + 1));
-        auto &v = m_assets[aid];
-        v.path = path;
-        v.id = aid;
-        ++v.ref_count;
-        hwDebugLog("GFSDK_HairSDK::LoadHairAssetFromFile(\"%s\") : %d succeeded.\n", path.c_str(), aid);
+    hwAssetData& v = newAssetData();
+    v.settings = settings;
+    v.path = path;
+    if (m_sdk->LoadHairAssetFromFile(path.c_str(), &v.aid, nullptr, &settings) == GFSDK_HAIR_RETURN_OK) {
+        v.ref_count = 1;
+        hwDebugLog("GFSDK_HairSDK::LoadHairAssetFromFile(\"%s\") : %d succeeded.\n", path.c_str(), v.handle);
+        return v.handle;
     }
     else {
         hwDebugLog("GFSDK_HairSDK::LoadHairAssetFromFile(\"%s\") failed.\n", path.c_str());
     }
-    return aid;
+    return hwNullHandle;
 }
 
-void hwContext::assetRelease(hwAssetID aid)
+void hwContext::assetRelease(hwHAsset ha)
 {
-    if (aid >= m_assets.size()) { return; }
+    if (ha >= m_assets.size()) { return; }
 
-    auto &v = m_assets[aid];
+    auto &v = m_assets[ha];
     if (v.ref_count > 0 && --v.ref_count==0) {
-        if (m_sdk->FreeHairAsset((GFSDK_HairAssetID)aid) == GFSDK_HAIR_RETURN_OK) {
-            hwDebugLog("GFSDK_HairSDK::FreeHairAsset(%d) succeeded.\n", aid);
+        if (m_sdk->FreeHairAsset(v.aid) == GFSDK_HAIR_RETURN_OK) {
+            hwDebugLog("GFSDK_HairSDK::FreeHairAsset(%d) succeeded.\n", ha);
         }
         else {
-            hwDebugLog("GFSDK_HairSDK::FreeHairAsset(%d) failed.\n", aid);
+            hwDebugLog("GFSDK_HairSDK::FreeHairAsset(%d) failed.\n", ha);
         }
-        v = hwAssetData();
+        v.invalidate();
     }
 }
 
-void hwContext::assetReload(hwAssetID aid)
+void hwContext::assetReload(hwHAsset ha)
 {
-    // todo
+    if (ha >= m_assets.size()) { return; }
+
+    auto &v = m_assets[ha];
+    // release existing asset
+    if (m_sdk->FreeHairAsset(v.aid)) {
+        v.aid = hwNullAssetID;
+    }
+
+    // reload
+    if (m_sdk->LoadHairAssetFromFile(v.path.c_str(), &v.aid, nullptr, &v.settings) == GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::LoadHairAssetFromFile(\"%s\") : %d reloaded.\n", v.path.c_str(), v.handle);
+    }
+    else {
+        hwDebugLog("GFSDK_HairSDK::LoadHairAssetFromFile(\"%s\") failed to reload.\n", v.path.c_str());
+    }
 }
 
-int hwContext::assetGetNumBones(hwAssetID aid) const
+int hwContext::assetGetNumBones(hwHAsset ha) const
 {
     uint32_t r = 0;
-    if (m_sdk->GetNumBones((GFSDK_HairAssetID)aid, &r) != GFSDK_HAIR_RETURN_OK) {
-        hwDebugLog("GFSDK_HairSDK::GetNumBones(%d) failed.\n", aid);
+    if (ha >= m_assets.size()) { return r; }
+
+    if (m_sdk->GetNumBones(m_assets[ha].aid, &r) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetNumBones(%d) failed.\n", ha);
     }
     return r;
 }
 
-const char* hwContext::assetGetBoneName(hwAssetID aid, int nth) const
+const char* hwContext::assetGetBoneName(hwHAsset ha, int nth) const
 {
     static char tmp[256];
-    if (m_sdk->GetBoneName((GFSDK_HairAssetID)aid, nth, tmp) != GFSDK_HAIR_RETURN_OK) {
-        hwDebugLog("GFSDK_HairSDK::GetBoneName(%d) failed.\n", aid);
+    if (ha >= m_assets.size()) { tmp[0] = '\0'; return tmp; }
+
+    if (m_sdk->GetBoneName(m_assets[ha].aid, nth, tmp) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetBoneName(%d) failed.\n", ha);
     }
     return tmp;
 }
 
-void hwContext::assetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices) const
+void hwContext::assetGetBoneIndices(hwHAsset ha, hwFloat4 &o_indices) const
 {
-    if (m_sdk->GetBoneIndices((GFSDK_HairAssetID)aid, &o_indices) != GFSDK_HAIR_RETURN_OK) {
-        hwDebugLog("GFSDK_HairSDK::GetBoneIndices(%d) failed.\n", aid);
+    if (ha >= m_assets.size()) { return; }
+
+    if (m_sdk->GetBoneIndices(m_assets[ha].aid, &o_indices) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetBoneIndices(%d) failed.\n", ha);
     }
 }
 
-void hwContext::assetGetBoneWeights(hwAssetID aid, hwFloat4 &o_waits) const
+void hwContext::assetGetBoneWeights(hwHAsset ha, hwFloat4 &o_waits) const
 {
-    if (m_sdk->GetBoneWeights((GFSDK_HairAssetID)aid, &o_waits) != GFSDK_HAIR_RETURN_OK) {
-        hwDebugLog("GFSDK_HairSDK::GetBoneWeights(%d) failed.\n", aid);
+    if (ha >= m_assets.size()) { return; }
+
+    if (m_sdk->GetBoneWeights(m_assets[ha].aid, &o_waits) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::GetBoneWeights(%d) failed.\n", ha);
     }
 }
 
-void hwContext::assetGetDefaultDescriptor(hwAssetID aid, hwHairDescriptor &o_desc) const
+void hwContext::assetGetDefaultDescriptor(hwHAsset ha, hwHairDescriptor &o_desc) const
 {
-    if (m_sdk->CopyInstanceDescriptorFromAsset((GFSDK_HairAssetID)aid, o_desc) != GFSDK_HAIR_RETURN_OK) {
-        hwDebugLog("GFSDK_HairSDK::CopyInstanceDescriptorFromAsset(%d) failed.\n", aid);
+    if (ha >= m_assets.size()) { return; }
+
+    if (m_sdk->CopyInstanceDescriptorFromAsset(m_assets[ha].aid, o_desc) != GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::CopyInstanceDescriptorFromAsset(%d) failed.\n", ha);
     }
 }
 
 
 
-hwInstanceID hwContext::instanceCreate(hwAssetID aid)
+hwInstanceData& hwContext::newInstanceData()
 {
-    hwInstanceID iid = hwNullID;
-    if (m_sdk->CreateHairInstance((GFSDK_HairAssetID)aid, (GFSDK_HairInstanceID*)&iid) == GFSDK_HAIR_RETURN_OK) {
-        m_instances.resize(std::max<int>(m_instances.size(), iid + 1));
-        auto &v = m_instances[iid];
-        v.id = iid;
-        v.aid = aid;
-        hwDebugLog("GFSDK_HairSDK::CreateHairInstance(%d) : %d succeeded.\n", aid, iid);
+    auto i = std::find_if(m_instances.begin(), m_instances.end(), [](const hwInstanceData &v) { return !v; });
+    if (i != m_instances.end()) { return *i; }
+
+    hwInstanceData tmp;
+    tmp.handle = m_instances.size();
+    m_instances.push_back(tmp);
+    return m_instances.back();
+}
+
+hwHInstance hwContext::instanceCreate(hwHAsset ha)
+{
+    if (ha >= m_assets.size()) { return hwNullHandle; }
+
+    hwInstanceData& v = newInstanceData();
+    if (m_sdk->CreateHairInstance(m_assets[ha].aid, &v.iid) == GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::CreateHairInstance(%d) : %d succeeded.\n", ha, v.handle);
     }
     else
     {
-        hwDebugLog("GFSDK_HairSDK::CreateHairInstance(%d) failed.\n", aid);
+        hwDebugLog("GFSDK_HairSDK::CreateHairInstance(%d) failed.\n", ha);
     }
-    return iid;
+    return v.handle;
 }
 
-void hwContext::instanceRelease(hwInstanceID iid)
+void hwContext::instanceRelease(hwHInstance hi)
 {
-    if (iid >= m_instances.size()) { return; }
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
 
-    auto &v = m_instances[iid];
-    if (v.id == iid) {
-        if (m_sdk->FreeHairInstance((GFSDK_HairInstanceID)iid) == GFSDK_HAIR_RETURN_OK) {
-            hwDebugLog("GFSDK_HairSDK::FreeHairInstance(%d) succeeded.\n", iid);
-        }
-        else {
-            hwDebugLog("GFSDK_HairSDK::FreeHairInstance(%d) failed.\n", iid);
-            v = hwInstanceData();
-        }
+    if (m_sdk->FreeHairInstance(v.iid) == GFSDK_HAIR_RETURN_OK) {
+        hwDebugLog("GFSDK_HairSDK::FreeHairInstance(%d) succeeded.\n", hi);
     }
+    else {
+        hwDebugLog("GFSDK_HairSDK::FreeHairInstance(%d) failed.\n", hi);
+    }
+    v.invalidate();
 }
 
 
-void hwContext::instanceGetDescriptor(hwInstanceID iid, hwHairDescriptor &desc) const
+void hwContext::instanceGetDescriptor(hwHInstance hi, hwHairDescriptor &desc) const
 {
-    if (m_sdk->CopyCurrentInstanceDescriptor((GFSDK_HairInstanceID)iid, desc) != GFSDK_HAIR_RETURN_OK)
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
+    if (m_sdk->CopyCurrentInstanceDescriptor(v.iid, desc) != GFSDK_HAIR_RETURN_OK)
     {
-        hwDebugLog("GFSDK_HairSDK::CopyCurrentInstanceDescriptor(%d) failed.\n", iid);
+        hwDebugLog("GFSDK_HairSDK::CopyCurrentInstanceDescriptor(%d) failed.\n", hi);
     }
 }
 
-void hwContext::instanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor &desc)
+void hwContext::instanceSetDescriptor(hwHInstance hi, const hwHairDescriptor &desc)
 {
-    if (m_sdk->UpdateInstanceDescriptor((GFSDK_HairInstanceID)iid, desc) != GFSDK_HAIR_RETURN_OK)
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
+    if (m_sdk->UpdateInstanceDescriptor(v.iid, desc) != GFSDK_HAIR_RETURN_OK)
     {
-        hwDebugLog("GFSDK_HairSDK::UpdateInstanceDescriptor(%d) failed.\n", iid);
+        hwDebugLog("GFSDK_HairSDK::UpdateInstanceDescriptor(%d) failed.\n", hi);
     }
 }
 
-void hwContext::instanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex)
+void hwContext::instanceSetTexture(hwHInstance hi, hwTextureType type, hwTexture *tex)
 {
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
     auto *srv = getSRV(tex);
-    if (!srv || m_sdk->SetTextureSRV((GFSDK_HairInstanceID)iid, type, srv) != GFSDK_HAIR_RETURN_OK)
+    if (!srv || m_sdk->SetTextureSRV(v.iid, type, srv) != GFSDK_HAIR_RETURN_OK)
     {
-        hwDebugLog("GFSDK_HairSDK::SetTextureSRV(%d, %d) failed.\n", iid, type);
+        hwDebugLog("GFSDK_HairSDK::SetTextureSRV(%d, %d) failed.\n", hi, type);
     }
 }
 
-void hwContext::instanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices)
+void hwContext::instanceUpdateSkinningMatrices(hwHInstance hi, int num_matrices, const hwMatrix *matrices)
 {
-    if (m_sdk->UpdateSkinningMatrices((GFSDK_HairInstanceID)iid, num_matrices, (const gfsdk_float4x4*)matrices) != GFSDK_HAIR_RETURN_OK)
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
+    if (m_sdk->UpdateSkinningMatrices(v.iid, num_matrices, (const gfsdk_float4x4*)matrices) != GFSDK_HAIR_RETURN_OK)
     {
-        hwDebugLog("GFSDK_HairSDK::UpdateSkinningMatrices(%d) failed.\n", iid);
+        hwDebugLog("GFSDK_HairSDK::UpdateSkinningMatrices(%d) failed.\n", hi);
     }
 }
 
@@ -387,10 +459,9 @@ void hwContext::setViewProjection(const hwMatrix &view, const hwMatrix &proj, fl
     pushDrawCommand(c);
 }
 
-void hwContext::setShader(hwShaderID sid)
+void hwContext::setShader(hwHShader hs)
 {
-    if (sid == hwNullID) { return; }
-    DrawCommand c = { CID_SetShader, sid };
+    DrawCommand c = { CID_SetShader, hs };
     pushDrawCommand(c);
 }
 
@@ -402,17 +473,15 @@ void hwContext::setLights(int num_lights, const hwLightData *lights)
     pushDrawCommand(c);
 }
 
-void hwContext::render(hwInstanceID iid)
+void hwContext::render(hwHInstance hi)
 {
-    if (iid == hwNullID) { return; }
-    DrawCommand c = { CID_Render, iid };
+    DrawCommand c = { CID_Render, hi };
     pushDrawCommand(c);
 }
 
-void hwContext::renderShadow(hwInstanceID iid)
+void hwContext::renderShadow(hwHInstance hi)
 {
-    if (iid == hwNullID) { return; }
-    DrawCommand c = { CID_RenderShadow, iid};
+    DrawCommand c = { CID_RenderShadow, hi};
     pushDrawCommand(c);
 }
 
@@ -463,11 +532,11 @@ void hwContext::setViewProjectionImpl(const hwMatrix &view, const hwMatrix &proj
     }
 }
 
-void hwContext::setShaderImpl(hwShaderID sid)
+void hwContext::setShaderImpl(hwHShader hs)
 {
-    if (sid >= m_shaders.size()) { return; }
+    if (hs >= m_shaders.size()) { return; }
 
-    auto &v = m_shaders[sid];
+    auto &v = m_shaders[hs];
     if (v.shader) {
         m_d3dctx->PSSetShader(v.shader, nullptr, 0);
     }
@@ -479,11 +548,14 @@ void hwContext::setLightsImpl(int num_lights, const hwLightData *lights)
     std::copy(lights, lights + num_lights, m_cb.lights);
 }
 
-void hwContext::renderImpl(hwInstanceID iid)
+void hwContext::renderImpl(hwHInstance hi)
 {
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
     // update constant buffer
     {
-        m_sdk->PrepareShaderConstantBuffer((GFSDK_HairInstanceID)iid, &m_cb.hw);
+        m_sdk->PrepareShaderConstantBuffer(v.iid, &m_cb.hw);
 
         D3D11_MAPPED_SUBRESOURCE MappedResource;
         m_d3dctx->Map(m_rs_constant_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
@@ -496,34 +568,37 @@ void hwContext::renderImpl(hwInstanceID iid)
     // set shader resource views
     {
         ID3D11ShaderResourceView* SRVs[GFSDK_HAIR_NUM_SHADER_RESOUCES];
-        m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, SRVs);
+        m_sdk->GetShaderResources(v.iid, SRVs);
         m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, SRVs);
     }
 
     // render
     auto settings = GFSDK_HairShaderSettings(true, false);
-    if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid, &settings) != GFSDK_HAIR_RETURN_OK)
+    if (m_sdk->RenderHairs(v.iid, &settings) != GFSDK_HAIR_RETURN_OK)
     {
-        hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);
+        hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", hi);
     }
 
     // render indicators
-    m_sdk->RenderVisualization((GFSDK_HairInstanceID)iid);
+    m_sdk->RenderVisualization(v.iid);
 }
 
-void hwContext::renderShadowImpl(hwInstanceID iid)
+void hwContext::renderShadowImpl(hwHInstance hi)
 {
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
     // set shader resource views
     {
         ID3D11ShaderResourceView* SRVs[GFSDK_HAIR_NUM_SHADER_RESOUCES];
-        m_sdk->GetShaderResources((GFSDK_HairInstanceID)iid, SRVs);
+        m_sdk->GetShaderResources(v.iid, SRVs);
         m_d3dctx->PSSetShaderResources(0, GFSDK_HAIR_NUM_SHADER_RESOUCES, SRVs);
     }
 
     auto settings = GFSDK_HairShaderSettings(false, true);
-    if (m_sdk->RenderHairs((GFSDK_HairInstanceID)iid, &settings) != GFSDK_HAIR_RETURN_OK)
+    if (m_sdk->RenderHairs(v.iid, &settings) != GFSDK_HAIR_RETURN_OK)
     {
-        hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", iid);
+        hwDebugLog("GFSDK_HairSDK::RenderHairs(%d) failed.\n", hi);
     }
 }
 

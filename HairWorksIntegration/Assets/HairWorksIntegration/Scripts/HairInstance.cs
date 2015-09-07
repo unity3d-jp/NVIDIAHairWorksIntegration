@@ -36,21 +36,21 @@ public class HairInstance : MonoBehaviour
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
     public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
     public Transform m_skinning_root;
-    public hwConversionSettings m_conversion = hwConversionSettings.default_value;
+    public hwConversionSettings m_load_settings = hwConversionSettings.default_value;
     public hwDescriptor m_params = hwDescriptor.default_value;
     public bool m_use_default_descriptor = true;
-    hwShaderID m_sid = hwShaderID.NullID;
-    hwAssetID m_aid = hwAssetID.NullID;
-    hwInstanceID m_iid = hwInstanceID.NullID;
+    hwHShader m_sid = hwHShader.NullHandle;
+    hwHAsset m_aid = hwHAsset.NullHandle;
+    hwHInstance m_iid = hwHInstance.NullHandle;
 
     public Transform[] m_bones;
     Matrix4x4[] m_skinning_matrices;
     IntPtr m_skinning_matrices_ptr;
 
 
-    public int shader_id { get { return m_sid; } }
-    public int asset_id { get { return m_aid; } }
-    public int instance_id { get { return m_iid; } }
+    public uint shader_id { get { return m_sid; } }
+    public uint asset_id { get { return m_aid; } }
+    public uint instance_id { get { return m_iid; } }
 
 
     public void LoadHairShader(string path_to_cso)
@@ -59,7 +59,7 @@ public class HairInstance : MonoBehaviour
         if (m_sid)
         {
             HairWorksIntegration.hwShaderRelease(m_sid);
-            m_sid = hwShaderID.NullID;
+            m_sid = hwHShader.NullHandle;
         }
 
         // load shader
@@ -80,16 +80,16 @@ public class HairInstance : MonoBehaviour
         if (m_iid)
         {
             HairWorksIntegration.hwInstanceRelease(m_iid);
-            m_iid = hwInstanceID.NullID;
+            m_iid = hwHInstance.NullHandle;
         }
         if (m_aid)
         {
             HairWorksIntegration.hwAssetRelease(m_aid);
-            m_aid = hwAssetID.NullID;
+            m_aid = hwHAsset.NullHandle;
         }
 
         // load & create instance
-        if (m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx, ref m_conversion))
+        if (m_aid = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx, ref m_load_settings))
         {
             m_hair_asset = path_to_apx;
             m_iid = HairWorksIntegration.hwInstanceCreate(m_aid);

@@ -3,31 +3,39 @@
 
 struct hwShaderData
 {
-    hwShaderID id;
+    hwHShader handle;
     int ref_count;
     ID3D11PixelShader *shader;
     std::string path;
 
-    hwShaderData() : id(hwNullID), ref_count(0), shader(nullptr) {}
+    hwShaderData() : handle(hwNullHandle), ref_count(0), shader(nullptr) {}
+    void invalidate() { ref_count = 0; shader = nullptr; path.clear(); }
+    operator bool() const { return shader != nullptr; }
 };
 
 struct hwAssetData
 {
-    hwAssetID id;
+    hwHAsset handle;
     int ref_count;
+    hwAssetID aid;
     std::string path;
+    hwConversionSettings settings;
 
-    hwAssetData() : id(hwNullID), ref_count(0) {}
+    hwAssetData() : handle(hwNullHandle), aid(hwNullAssetID), ref_count(0) {}
+    void invalidate() { ref_count = 0; aid = hwNullAssetID; path.clear(); }
+    operator bool() const { return aid != hwNullAssetID; }
 };
 
 struct hwInstanceData
 {
-    hwInstanceID id;
-    hwAssetID aid;
+    hwHInstance handle;
+    hwInstanceID iid;
     bool cast_shadow;
     bool receive_shadow;
 
-    hwInstanceData() : id(hwNullID), aid(hwNullID), cast_shadow(), receive_shadow() {}
+    hwInstanceData() : handle(hwNullHandle), iid(hwNullInstanceID), cast_shadow(false), receive_shadow(false) {}
+    void invalidate() { iid = hwNullInstanceID; cast_shadow = false; receive_shadow = false; }
+    operator bool() const { return iid != hwNullInstanceID; }
 };
 
 enum hwELightType
@@ -112,43 +120,47 @@ public:
     void finalize();
     void move(hwContext &from);
 
-    hwShaderID      shaderLoadFromFile(const std::string &path);
-    void            shaderRelease(hwShaderID sid);
-    void            shaderReload(hwShaderID sid);
+    hwHShader       shaderLoadFromFile(const std::string &path);
+    void            shaderRelease(hwHShader sid);
+    void            shaderReload(hwHShader sid);
 
-    hwAssetID       assetLoadFromFile(const std::string &path, const hwConversionSettings &conv);
-    void            assetRelease(hwAssetID aid);
-    void            assetReload(hwAssetID aid);
-    int             assetGetNumBones(hwAssetID aid) const;
-    const char*     assetGetBoneName(hwAssetID aid, int nth) const;
-    void            assetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices) const;
-    void            assetGetBoneWeights(hwAssetID aid, hwFloat4 &o_waits) const;
-    void            assetGetDefaultDescriptor(hwAssetID aid, hwHairDescriptor &o_desc) const;
+    hwHAsset        assetLoadFromFile(const std::string &path, const hwConversionSettings &conv);
+    void            assetRelease(hwHAsset aid);
+    void            assetReload(hwHAsset aid);
+    int             assetGetNumBones(hwHAsset aid) const;
+    const char*     assetGetBoneName(hwHAsset aid, int nth) const;
+    void            assetGetBoneIndices(hwHAsset aid, hwFloat4 &o_indices) const;
+    void            assetGetBoneWeights(hwHAsset aid, hwFloat4 &o_waits) const;
+    void            assetGetDefaultDescriptor(hwHAsset aid, hwHairDescriptor &o_desc) const;
 
-    hwInstanceID    instanceCreate(hwAssetID aid);
-    void            instanceRelease(hwInstanceID iid);
-    void            instanceGetDescriptor(hwInstanceID iid, hwHairDescriptor &desc) const;
-    void            instanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor &desc);
-    void            instanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex);
-    void            instanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices);
+    hwHInstance     instanceCreate(hwHAsset aid);
+    void            instanceRelease(hwHInstance iid);
+    void            instanceGetDescriptor(hwHInstance iid, hwHairDescriptor &desc) const;
+    void            instanceSetDescriptor(hwHInstance iid, const hwHairDescriptor &desc);
+    void            instanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex);
+    void            instanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, const hwMatrix *matrices);
 
     void setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov);
     void setRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
-    void setShader(hwShaderID sid);
+    void setShader(hwHShader sid);
     void setLights(int num_lights, const hwLightData *lights);
-    void render(hwInstanceID iid);
-    void renderShadow(hwInstanceID iid);
+    void render(hwHInstance iid);
+    void renderShadow(hwHInstance iid);
     void flush();
     void stepSimulation(float dt);
 
 private:
+    hwShaderData&   newShaderData();
+    hwAssetData&    newAssetData();
+    hwInstanceData& newInstanceData();
+
     template<class T> void pushDrawCommand(const T &c);
     void setViewProjectionImpl(const hwMatrix &view, const hwMatrix &proj, float fov);
     void setRenderTargetImpl(hwTexture *framebuffer, hwTexture *depthbuffer);
-    void setShaderImpl(hwShaderID sid);
+    void setShaderImpl(hwHShader sid);
     void setLightsImpl(int num_lights, const hwLightData *lights);
-    void renderImpl(hwInstanceID iid);
-    void renderShadowImpl(hwInstanceID iid);
+    void renderImpl(hwHInstance iid);
+    void renderShadowImpl(hwHInstance iid);
     hwSRV* getSRV(hwTexture *tex);
     hwRTV* getRTV(hwTexture *tex);
 

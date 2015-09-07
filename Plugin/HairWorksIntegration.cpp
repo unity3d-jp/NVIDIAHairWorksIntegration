@@ -180,22 +180,22 @@ hwCLinkage hwExport void hwSetLogCallback(hwLogCallback cb)
     g_hwLogCallback = cb;
 }
 
-hwCLinkage hwExport hwShaderID hwShaderLoadFromFile(const char *path)
+hwCLinkage hwExport hwHShader hwShaderLoadFromFile(const char *path)
 {
-    if (path == nullptr || path[0] == '\0') { return hwNullID; }
+    if (path == nullptr || path[0] == '\0') { return hwNullHandle; }
     if (auto ctx = hwGetContext()) {
         return ctx->shaderLoadFromFile(path);
     }
-    return hwNullID;
+    return hwNullHandle;
 }
-hwCLinkage hwExport void hwShaderRelease(hwShaderID sid)
+hwCLinkage hwExport void hwShaderRelease(hwHShader sid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->shaderRelease(sid);
     }
 }
 
-hwCLinkage hwExport void hwShaderReload(hwShaderID sid)
+hwCLinkage hwExport void hwShaderReload(hwHShader sid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->shaderReload(sid);
@@ -203,29 +203,29 @@ hwCLinkage hwExport void hwShaderReload(hwShaderID sid)
 }
 
 
-hwCLinkage hwExport hwAssetID hwAssetLoadFromFile(const char *path, const hwConversionSettings *conv)
+hwCLinkage hwExport hwHAsset hwAssetLoadFromFile(const char *path, const hwConversionSettings *conv)
 {
-    if (path == nullptr || path[0]=='\0') { return hwNullID; }
+    if (path == nullptr || path[0]=='\0') { return hwNullHandle; }
     if (auto ctx = hwGetContext()) {
         return ctx->assetLoadFromFile(path, *conv);
     }
-    return hwNullID;
+    return hwNullHandle;
 }
-hwCLinkage hwExport void hwAssetRelease(hwAssetID aid)
+hwCLinkage hwExport void hwAssetRelease(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetRelease(aid);
     }
 }
 
-hwCLinkage hwExport void hwAssetReload(hwAssetID aid)
+hwCLinkage hwExport void hwAssetReload(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetReload(aid);
     }
 }
 
-hwCLinkage hwExport int hwAssetGetNumBones(hwAssetID aid)
+hwCLinkage hwExport int hwAssetGetNumBones(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         return ctx->assetGetNumBones(aid);
@@ -233,7 +233,7 @@ hwCLinkage hwExport int hwAssetGetNumBones(hwAssetID aid)
     return 0;
 }
 
-hwCLinkage hwExport const char* hwAssetGetBoneName(hwAssetID aid, int nth)
+hwCLinkage hwExport const char* hwAssetGetBoneName(hwHAsset aid, int nth)
 {
     if (auto ctx = hwGetContext()) {
         return ctx->assetGetBoneName(aid, nth);
@@ -241,21 +241,21 @@ hwCLinkage hwExport const char* hwAssetGetBoneName(hwAssetID aid, int nth)
     return nullptr;
 }
 
-hwCLinkage hwExport void hwAssetGetBoneIndices(hwAssetID aid, hwFloat4 &o_indices)
+hwCLinkage hwExport void hwAssetGetBoneIndices(hwHAsset aid, hwFloat4 &o_indices)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetGetBoneIndices(aid, o_indices);
     }
 }
 
-hwCLinkage hwExport void hwAssetGetBoneWeights(hwAssetID aid, hwFloat4 &o_waits)
+hwCLinkage hwExport void hwAssetGetBoneWeights(hwHAsset aid, hwFloat4 &o_waits)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetGetBoneWeights(aid, o_waits);
     }
 }
 
-hwCLinkage hwExport void hwAssetGetDefaultDescriptor(hwAssetID aid, hwHairDescriptor &o_desc)
+hwCLinkage hwExport void hwAssetGetDefaultDescriptor(hwHAsset aid, hwHairDescriptor &o_desc)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetGetDefaultDescriptor(aid, o_desc);
@@ -263,38 +263,38 @@ hwCLinkage hwExport void hwAssetGetDefaultDescriptor(hwAssetID aid, hwHairDescri
 }
 
 
-hwCLinkage hwExport hwInstanceID hwInstanceCreate(hwAssetID aid)
+hwCLinkage hwExport hwHInstance hwInstanceCreate(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         return ctx->instanceCreate(aid);
     }
-    return hwNullID;
+    return hwNullHandle;
 }
-hwCLinkage hwExport void hwInstanceRelease(hwInstanceID iid)
+hwCLinkage hwExport void hwInstanceRelease(hwHInstance iid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceRelease(iid);
     }
 }
-hwCLinkage hwExport void hwInstanceGetDescriptor(hwInstanceID iid, hwHairDescriptor *desc)
+hwCLinkage hwExport void hwInstanceGetDescriptor(hwHInstance iid, hwHairDescriptor *desc)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceGetDescriptor(iid, *desc);
     }
 }
-hwCLinkage hwExport void hwInstanceSetDescriptor(hwInstanceID iid, const hwHairDescriptor *desc)
+hwCLinkage hwExport void hwInstanceSetDescriptor(hwHInstance iid, const hwHairDescriptor *desc)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceSetDescriptor(iid, *desc);
     }
 }
-hwCLinkage hwExport void hwInstanceSetTexture(hwInstanceID iid, hwTextureType type, hwTexture *tex)
+hwCLinkage hwExport void hwInstanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceSetTexture(iid, type, tex);
     }
 }
-hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwInstanceID iid, int num_matrices, const hwMatrix *matrices)
+hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_matrices, const hwMatrix *matrices)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceUpdateSkinningMatrices(iid, num_matrices, matrices);
@@ -316,7 +316,7 @@ hwCLinkage hwExport void hwSetRenderTarget(hwTexture *framebuffer, hwTexture *de
     }
 }
 
-hwCLinkage hwExport void hwSetShader(hwShaderID sid)
+hwCLinkage hwExport void hwSetShader(hwHShader sid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setShader(sid);
@@ -330,14 +330,14 @@ hwCLinkage hwExport void hwSetLights(int num_lights, const hwLightData *lights)
     }
 }
 
-hwCLinkage hwExport void hwRender(hwInstanceID iid)
+hwCLinkage hwExport void hwRender(hwHInstance iid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->render(iid);
     }
 }
 
-hwCLinkage hwExport void hwRenderShadow(hwInstanceID iid)
+hwCLinkage hwExport void hwRenderShadow(hwHInstance iid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->renderShadow(iid);

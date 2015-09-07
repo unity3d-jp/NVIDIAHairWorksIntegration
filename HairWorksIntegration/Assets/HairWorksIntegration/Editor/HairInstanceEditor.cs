@@ -33,11 +33,15 @@ public class HairInstanceEditor : Editor
         GUILayout.Label(
             "hair shader: " + t.m_hair_shader + "\n" +
             "hair asset: " + t.m_hair_asset + "\n" +
-            "shader id: " + t.shader_id + "\n" +
-            "asset id: " + t.asset_id + "\n" +
-            "instance id: " + t.instance_id);
+            "shader id: " + HandleToString(t.shader_id) + "\n" +
+            "asset id: " + HandleToString(t.asset_id) + "\n" +
+            "instance id: " + HandleToString(t.instance_id));
     }
 
+    static string HandleToString(uint h)
+    {
+        return h == 0xFFFFFFFF ? "(null)" : h.ToString();
+    }
 
     static string MakeRelativePath(string path)
     {
