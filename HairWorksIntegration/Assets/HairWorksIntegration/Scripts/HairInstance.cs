@@ -19,9 +19,9 @@ public class HairInstance : MonoBehaviour
     static HashSet<HairInstance> s_instances;
     static int s_nth_LateUpdate;
     static int s_nth_OnWillRenderObject;
-    static public Vector2 s_resolution_scale = Vector2.one;
-    static public RenderTexture s_framebuffer;
-    static public RenderTexture s_depthbuffer;
+
+    static CommandBuffer s_command_buffer;
+    static HashSet<Camera> s_cameras = new HashSet<Camera>();
 
     static public HashSet<HairInstance> GetInstances()
     {
@@ -33,6 +33,7 @@ public class HairInstance : MonoBehaviour
     }
     #endregion
 
+    static CameraEvent s_timing = CameraEvent.BeforeImageEffects;
 
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
     public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
@@ -48,9 +49,6 @@ public class HairInstance : MonoBehaviour
     Matrix4x4[] m_inv_bindpose;
     Matrix4x4[] m_skinning_matrices;
     IntPtr m_skinning_matrices_ptr;
-
-    CommandBuffer m_command_buffer;
-    HashSet<Camera> m_cameras = new HashSet<Camera>();
 
 
     public uint shader_id { get { return m_hshader; } }
@@ -182,22 +180,24 @@ public class HairInstance : MonoBehaviour
     void Awake()
     {
         HairWorksIntegration.hwSetLogCallback();
-        GetInstances().Add(this);
     }
 
     void OnDestroy()
     {
         HairWorksIntegration.hwInstanceRelease(m_hinstance);
         HairWorksIntegration.hwAssetRelease(m_hasset);
-        GetInstances().Remove(this);
     }
 
     void OnEnable()
     {
+        GetInstances().Add(this);
+        m_params.m_enable = true;
     }
 
     void OnDisable()
     {
+        m_params.m_enable = false;
+        GetInstances().Remove(this);
     }
 
     void Start()
@@ -227,8 +227,6 @@ public class HairInstance : MonoBehaviour
 
     void OnWillRenderObject()
     {
-        //if(Camera.current != Camera.main) { return; }
-
         if (s_nth_OnWillRenderObject++ == 0)
         {
             BeginRender();
@@ -246,8 +244,19 @@ public class HairInstance : MonoBehaviour
     }
 
 
+    static public void ClearCommandBuffer()
+    {
+        foreach (var c in s_cameras)
+        {
+            if (c != null)
+            {
+                c.RemoveCommandBuffer(s_timing, s_command_buffer);
+            }
+        }
+        s_cameras.Clear();
+    }
 
-    void BeginRender()
+    static void BeginRender()
     {
         var cam = Camera.current;
         if(cam != null)
@@ -268,20 +277,20 @@ public class HairInstance : MonoBehaviour
         HairWorksIntegration.hwRender(m_hinstance);
     }
 
-    void EndRender()
+    static void EndRender()
     {
-        if (m_command_buffer == null)
+        if (s_command_buffer == null)
         {
-            m_command_buffer = new CommandBuffer();
-            m_command_buffer.name = "Hair";
-            m_command_buffer.IssuePluginEvent(HairWorksIntegration.hwGetRenderEventFunc(), 0);
+            s_command_buffer = new CommandBuffer();
+            s_command_buffer.name = "Hair";
+            s_command_buffer.IssuePluginEvent(HairWorksIntegration.hwGetRenderEventFunc(), 0);
         }
 
         var cam = Camera.current;
-        if(cam != null && !m_cameras.Contains(cam))
+        if(cam != null && !s_cameras.Contains(cam))
         {
-            cam.AddCommandBuffer(CameraEvent.BeforeSkybox, m_command_buffer);
-            m_cameras.Add(cam);
+            cam.AddCommandBuffer(s_timing, s_command_buffer);
+            s_cameras.Add(cam);
         }
     }
 
