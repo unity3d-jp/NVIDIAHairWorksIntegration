@@ -9,6 +9,8 @@
 #include <d3d11.h>
 #include <directXMath.h>
 #include <GFSDK_HairWorks.h>
+#include <IUnityGraphics.h>
+#include <IUnityGraphicsD3D11.h>
 
 using namespace DirectX; // for DirectX Math
 

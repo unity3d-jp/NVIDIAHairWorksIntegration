@@ -8,66 +8,84 @@
     #define hwSDKDLL "GFSDK_HairWorks.win64.dll"
 #endif
 
-ID3D11Device *g_d3d11_device = nullptr;
-hwContext *g_hwContext = nullptr;
-
-
-// Graphics device identifiers in Unity
-enum GfxDeviceRenderer
+struct hwPluginContext
 {
-    kGfxRendererOpenGL = 0, // desktop OpenGL
-    kGfxRendererD3D9 = 1, // Direct3D 9
-    kGfxRendererD3D11 = 2, // Direct3D 11
-    kGfxRendererGCM = 3, // PlayStation 3
-    kGfxRendererNull = 4, // "null" device (used in batch mode)
-    kGfxRendererXenon = 6, // Xbox 360
-    kGfxRendererOpenGLES20 = 8, // OpenGL ES 2.0
-    kGfxRendererOpenGLES30 = 11, // OpenGL ES 3.0
-    kGfxRendererGXM = 12, // PlayStation Vita
-    kGfxRendererPS4 = 13, // PlayStation 4
-    kGfxRendererXboxOne = 14, // Xbox One
-    kGfxRendererMetal = 16, // iOS Metal
-};
+    IUnityInterfaces    *unity_interface;
+    IUnityGraphics      *unity_graphics;
+    IUnityGraphicsD3D11 *unity_graphics_d3d11;
+    ID3D11Device        *d3d11_device;
+    hwContext           *hw_ctx;
 
-// Event types for UnitySetGraphicsDevice
-enum GfxDeviceEventType {
-    kGfxDeviceEventInitialize = 0,
-    kGfxDeviceEventShutdown,
-    kGfxDeviceEventBeforeReset,
-    kGfxDeviceEventAfterReset,
+    hwPluginContext()
+        : unity_interface(nullptr)
+        , unity_graphics(nullptr)
+        , unity_graphics_d3d11(nullptr)
+        , d3d11_device(nullptr)
+        , hw_ctx(nullptr)
+    {}
 };
+hwPluginContext g_ctx;
 
-hwCLinkage hwExport void UnitySetGraphicsDevice(void* device, int deviceType, int eventType)
+#define g_unity_interface       g_ctx.unity_interface
+#define g_unity_graphics        g_ctx.unity_graphics
+#define g_unity_graphics_d3d11  g_ctx.unity_graphics_d3d11
+#define g_d3d11_device          g_ctx.d3d11_device
+#define g_hw_ctx                g_ctx.hw_ctx
+
+
+static void UNITY_INTERFACE_API UnityOnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
 {
-    if (eventType == kGfxDeviceEventInitialize) {
-        if (deviceType == kGfxRendererD3D11) {
-            g_d3d11_device = (ID3D11Device*)device;
-        }
-    }
-
-    if (eventType == kGfxDeviceEventShutdown) {
+    // nothing todo?
+    if (eventType == kUnityGfxDeviceEventInitialize) {
     }
 }
 
-hwCLinkage hwExport void UnityRenderEvent(int eventID)
+static void UNITY_INTERFACE_API UnityRenderEvent(int eventID)
 {
-    if (eventID == hwFlushEventID) {
+    if (eventID == 0) {
         if (auto ctx = hwGetContext()) {
             ctx->flush();
         }
     }
 }
 
-
-hwCLinkage hwExport void hwMoveContext(hwContext *ctx)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API
+UnityPluginLoad(IUnityInterfaces* unityInterfaces)
 {
-    if (ctx && g_hwContext) {
-        g_hwContext->move(*ctx);
+    g_unity_interface = unityInterfaces;
+    g_unity_graphics = g_unity_interface->Get<IUnityGraphics>();
+    if (g_unity_graphics->GetRenderer() == kUnityGfxRendererD3D11) {
+        g_unity_graphics_d3d11 = g_unity_interface->Get<IUnityGraphicsD3D11>();
+        g_d3d11_device = g_unity_graphics_d3d11->GetDevice();
+        g_unity_graphics->RegisterDeviceEventCallback(UnityOnGraphicsDeviceEvent);
+
+        // Run OnGraphicsDeviceEvent(initialize) manually on plugin load
+        // to not miss the event in case the graphics device is already initialized
+        UnityOnGraphicsDeviceEvent(kUnityGfxDeviceEventInitialize);
     }
 }
-typedef void(*hwMoveContextT)(hwContext *ctx);
 
-#if !defined(hwMaster)
+extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API
+UnityPluginUnload()
+{
+    g_unity_graphics->UnregisterDeviceEventCallback(UnityOnGraphicsDeviceEvent);
+}
+
+extern "C" UnityRenderingEvent UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API
+hwGetRenderEventFunc()
+{
+    return UnityRenderEvent;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// PatchLibrary 用のコンテキスト移動処理群
+
+hwCLinkage hwExport void hwMoveContext(hwPluginContext *ctx)
+{
+    *ctx = g_ctx;
+}
+typedef void(*hwMoveContextT)(hwPluginContext *ctx);
+
 // PatchLibrary で突っ込まれたモジュールは UnitySetGraphicsDevice() が呼ばれないので、
 // DLL_PROCESS_ATTACH のタイミングで先にロードされているモジュールからデバイスをもらって同等の処理を行う。
 BOOL WINAPI DllMain(HINSTANCE module_handle, DWORD reason_for_call, LPVOID reserved)
@@ -77,11 +95,15 @@ BOOL WINAPI DllMain(HINSTANCE module_handle, DWORD reason_for_call, LPVOID reser
         if (HMODULE m = ::GetModuleHandleA("HairWorksIntegration.dll")) {
             auto proc = (hwMoveContextT)::GetProcAddress(m, "hwMoveContext");
             if (proc) {
-                g_hwContext = new hwContext();
-                proc(g_hwContext);
-                if (!g_hwContext->valid()) {
-                    delete g_hwContext;
-                    g_hwContext = nullptr;
+                proc(&g_ctx);
+                if (g_ctx.unity_graphics) {
+                    g_ctx.unity_graphics->RegisterDeviceEventCallback(UnityOnGraphicsDeviceEvent);
+                }
+                if (g_ctx.hw_ctx) {
+                    auto *tc = new hwContext();
+                    tc->move(*g_ctx.hw_ctx);
+                    delete g_ctx.hw_ctx;
+                    g_ctx.hw_ctx = tc;
                 }
             }
         }
@@ -99,7 +121,8 @@ extern "C" { int __afxForceUSRDLL; }
 extern "C" { int _afxForceUSRDLL; }
 #endif
 
-#endif
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 /*hwThreadLocal*/ hwLogCallback g_hwLogCallback;
@@ -127,7 +150,7 @@ void hwDebugLogImpl(const char* fmt, ...)
 
 hwCLinkage hwExport bool hwInitialize()
 {
-    if (g_hwContext != nullptr) {
+    if (g_hw_ctx != nullptr) {
         return true;
     }
 
@@ -146,8 +169,8 @@ hwCLinkage hwExport bool hwInitialize()
         }
     }
 
-    g_hwContext = new hwContext();
-    if (g_hwContext->initialize(path, g_d3d11_device)) {
+    g_hw_ctx = new hwContext();
+    if (g_hw_ctx->initialize(path, g_d3d11_device)) {
         return true;
     }
     else {
@@ -158,14 +181,14 @@ hwCLinkage hwExport bool hwInitialize()
 
 hwCLinkage hwExport void hwFinalize()
 {
-    delete g_hwContext;
-    g_hwContext = nullptr;
+    delete g_hw_ctx;
+    g_hw_ctx = nullptr;
 }
 
 hwCLinkage hwExport hwContext* hwGetContext()
 {
     hwInitialize();
-    return g_hwContext;
+    return g_hw_ctx;
 }
 
 hwCLinkage hwExport int hwGetFlushEventID()

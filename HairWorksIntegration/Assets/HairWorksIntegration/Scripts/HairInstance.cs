@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -47,6 +48,9 @@ public class HairInstance : MonoBehaviour
     Matrix4x4[] m_inv_bindpose;
     Matrix4x4[] m_skinning_matrices;
     IntPtr m_skinning_matrices_ptr;
+
+    CommandBuffer m_command_buffer;
+    HashSet<Camera> m_cameras = new HashSet<Camera>();
 
 
     public uint shader_id { get { return m_hshader; } }
@@ -143,15 +147,10 @@ public class HairInstance : MonoBehaviour
             {
                 string name = HairWorksIntegration.hwAssetGetBoneNameString(m_hasset, i);
                 m_bones[i] = Array.Find(children, (a) => { return a.name == name; });
-                if (m_bones[i] != null)
-                {
-                    HairWorksIntegration.hwAssetGetBindPose(m_hasset, i, ref m_inv_bindpose[i]);
-                    m_inv_bindpose[i] = (Matrix4x4.Scale(new Vector3(0.1f, 0.1f, 0.1f)) * m_inv_bindpose[i]).inverse;
-                }
-                else if (m_bones[i] == null)
-                {
-                    m_bones[i] = m_root_bone;
-                }
+                if (m_bones[i] == null) { m_bones[i] = m_root_bone; }
+                HairWorksIntegration.hwAssetGetBindPose(m_hasset, i, ref m_inv_bindpose[i]);
+                //m_inv_bindpose[i] = m_bones[i].localToWorldMatrix;
+                m_inv_bindpose[i] = m_inv_bindpose[i].inverse;
             }
 
         }
@@ -165,8 +164,9 @@ public class HairInstance : MonoBehaviour
             var t = m_bones[i];
             if (t != null)
             {
+                //m_skinning_matrices[i] = t.localToWorldMatrix * m_inv_bindpose[i];
                 m_skinning_matrices[i] = t.localToWorldMatrix;
-                //m_skinning_matrices[i] = m_inv_bindpose[i] * t.localToWorldMatrix;
+                //m_skinning_matrices[i] = Matrix4x4.identity;
             }
         }
     }
@@ -227,11 +227,8 @@ public class HairInstance : MonoBehaviour
 
     void OnWillRenderObject()
     {
-        s_nth_OnWillRenderObject = 0;
-    }
+        //if(Camera.current != Camera.main) { return; }
 
-    void OnRenderObject()
-    {
         if (s_nth_OnWillRenderObject++ == 0)
         {
             BeginRender();
@@ -241,6 +238,11 @@ public class HairInstance : MonoBehaviour
             }
             EndRender();
         }
+    }
+
+    void OnRenderObject()
+    {
+        s_nth_OnWillRenderObject = 0;
     }
 
 
@@ -268,8 +270,19 @@ public class HairInstance : MonoBehaviour
 
     void EndRender()
     {
-        GL.IssuePluginEvent( HairWorksIntegration.hwGetFlushEventID() );
-        GL.InvalidateState();
+        if (m_command_buffer == null)
+        {
+            m_command_buffer = new CommandBuffer();
+            m_command_buffer.name = "Hair";
+            m_command_buffer.IssuePluginEvent(HairWorksIntegration.hwGetRenderEventFunc(), 0);
+        }
+
+        var cam = Camera.current;
+        if(cam != null && !m_cameras.Contains(cam))
+        {
+            cam.AddCommandBuffer(CameraEvent.BeforeSkybox, m_command_buffer);
+            m_cameras.Add(cam);
+        }
     }
 
 

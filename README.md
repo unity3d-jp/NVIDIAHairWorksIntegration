@@ -6,10 +6,10 @@ MAYA や 3ds Max でオーサリングした Hair データを Unity で表示�
 まだまだ作りかけて色々おかしいですが、上記スクリーンショットくらいのことはできるようになっています。
 
 ## How To use
+**Unity 5.2 以降、かつ Windows & D3D11 専用です**。  
 使用には少々面倒な手順が必要です。
 Hair Works SDK は再配布が認められていないため、各自個別に NVIDIA の開発者サイトから入手してプロジェクトへインポートする必要があります。
-以下に手順を記します。  
-現状 SDK はバージョン 1.1 を前提としています。また、Hair Works の実装の都合上、Windows & D3D11 専用になっています。
+以下に手順を記します。現状 SDK はバージョン 1.1 を前提としています。
 
 1.  [このパッケージ](https://github.com/unity3d-jp/NVIDIAHairWorksIntegration/raw/master/Packages/HairWorksIntegration.unitypackage) をプロジェクトへインポート
 2.  Hair Works SDK を入手

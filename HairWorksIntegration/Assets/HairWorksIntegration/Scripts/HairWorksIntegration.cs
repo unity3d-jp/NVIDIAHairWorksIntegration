@@ -458,7 +458,7 @@ public struct hwDQuaternion
 public static class HairWorksIntegration
 {
     public delegate void hwLogCallback(System.IntPtr cstr);
-    [DllImport ("HairWorksIntegration")] public static extern int           hwGetFlushEventID();
+    [DllImport ("HairWorksIntegration")] public static extern IntPtr        hwGetRenderEventFunc();
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetLogCallback(hwLogCallback cb);
 
     [DllImport ("HairWorksIntegration")] public static extern hwHShader     hwShaderLoadFromFile(string path);
