@@ -244,6 +244,27 @@ public class HairInstance : MonoBehaviour
     }
 
 
+
+
+    static public bool IsDeferred(Camera cam)
+    {
+        if (cam.renderingPath == RenderingPath.DeferredShading
+#if UNITY_EDITOR
+            || (cam.renderingPath == RenderingPath.UsePlayerSettings && PlayerSettings.renderingPath == RenderingPath.DeferredShading)
+#endif
+            )
+        {
+            return true;
+        }
+        return false;
+    }
+
+    static public bool DoesRenderToTexture(Camera cam)
+    {
+        return IsDeferred(cam) || cam.targetTexture != null;
+    }
+
+
     static public void ClearCommandBuffer()
     {
         foreach (var c in s_cameras)
@@ -262,7 +283,7 @@ public class HairInstance : MonoBehaviour
         if(cam != null)
         {
             Matrix4x4 V = cam.worldToCameraMatrix;
-            Matrix4x4 P = GL.GetGPUProjectionMatrix(cam.projectionMatrix, true);
+            Matrix4x4 P = GL.GetGPUProjectionMatrix(cam.projectionMatrix, DoesRenderToTexture(cam));
             float fov = cam.fieldOfView;
             HairWorksIntegration.hwSetViewProjection(ref V, ref P, fov);
             HairLight.AssignLightData();
