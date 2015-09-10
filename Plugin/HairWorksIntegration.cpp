@@ -80,30 +80,31 @@ hwGetRenderEventFunc()
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // PatchLibrary 用のコンテキスト移動処理群
 
-hwCLinkage hwExport void hwMoveContext(hwPluginContext *ctx)
+hwCLinkage hwExport hwPluginContext* hwGetPluginContext()
 {
-    *ctx = g_ctx;
+    return &g_ctx;
 }
-typedef void(*hwMoveContextT)(hwPluginContext *ctx);
+typedef hwPluginContext* (*hwGetPluginContextT)();
 
-// PatchLibrary で突っ込まれたモジュールは UnitySetGraphicsDevice() が呼ばれないので、
-// DLL_PROCESS_ATTACH のタイミングで先にロードされているモジュールからデバイスをもらって同等の処理を行う。
+// PatchLibrary で突っ込まれたモジュールは UnityPluginLoad() が呼ばれないので、
+// DLL_PROCESS_ATTACH のタイミングで先にロードされているモジュールからコンテキストを移管して同等の処理を行う。
 BOOL WINAPI DllMain(HINSTANCE module_handle, DWORD reason_for_call, LPVOID reserved)
 {
     if (reason_for_call == DLL_PROCESS_ATTACH)
     {
         if (HMODULE m = ::GetModuleHandleA("HairWorksIntegration.dll")) {
-            auto proc = (hwMoveContextT)::GetProcAddress(m, "hwMoveContext");
+            auto proc = (hwGetPluginContextT)::GetProcAddress(m, "hwGetPluginContext");
             if (proc) {
-                proc(&g_ctx);
+                auto *old = proc();
+                g_ctx = *old;
                 if (g_ctx.unity_graphics) {
                     g_ctx.unity_graphics->RegisterDeviceEventCallback(UnityOnGraphicsDeviceEvent);
                 }
-                if (g_ctx.hw_ctx) {
-                    auto *tc = new hwContext();
-                    tc->move(*g_ctx.hw_ctx);
-                    delete g_ctx.hw_ctx;
-                    g_ctx.hw_ctx = tc;
+                if (old->hw_ctx) {
+                    g_ctx.hw_ctx = new hwContext();
+                    g_ctx.hw_ctx->move(*old->hw_ctx);
+                    delete old->hw_ctx;
+                    old->hw_ctx = g_ctx.hw_ctx;
                 }
             }
         }

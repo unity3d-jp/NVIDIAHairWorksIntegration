@@ -14,6 +14,10 @@
 
 using namespace DirectX; // for DirectX Math
 
+#ifdef _WIN32
+    #define hwWindows
+#endif
+
 
 #define hwCLinkage extern "C"
 #define hwExport __declspec(dllexport)

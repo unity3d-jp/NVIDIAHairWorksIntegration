@@ -44,8 +44,8 @@ bool hwContext::valid() const
 
 bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
 {
-    if (path_to_dll == nullptr || d3d_device == nullptr) { return false; }
     if (m_sdk != nullptr) { return true; }
+    if (path_to_dll == nullptr || d3d_device == nullptr) { return false; }
 
     m_sdk = GFSDK_LoadHairSDK(path_to_dll, GFSDK_HAIRWORKS_VERSION);
     if (m_sdk != nullptr) {
@@ -482,7 +482,7 @@ void hwContext::setViewProjection(const hwMatrix &view, const hwMatrix &proj, fl
 
 void hwContext::setShader(hwHShader hs)
 {
-    DrawCommand c = { CID_SetShader, hs };
+    DrawCommandI c = { CID_SetShader, hs };
     pushDrawCommand(c);
 }
 
@@ -496,13 +496,19 @@ void hwContext::setLights(int num_lights, const hwLightData *lights)
 
 void hwContext::render(hwHInstance hi)
 {
-    DrawCommand c = { CID_Render, hi };
+    DrawCommandI c = { CID_Render, hi };
     pushDrawCommand(c);
 }
 
 void hwContext::renderShadow(hwHInstance hi)
 {
-    DrawCommand c = { CID_RenderShadow, hi};
+    DrawCommandI c = { CID_RenderShadow, hi };
+    pushDrawCommand(c);
+}
+
+void hwContext::stepSimulation(float dt)
+{
+    DrawCommandF c = { CID_StepSimulation, dt };
     pushDrawCommand(c);
 }
 
@@ -623,6 +629,14 @@ void hwContext::renderShadowImpl(hwHInstance hi)
     }
 }
 
+void hwContext::stepSimulationImpl(float dt)
+{
+    if (m_sdk->StepSimulation(dt) != GFSDK_HAIR_RETURN_OK)
+    {
+        hwDebugLog("GFSDK_HairSDK::StepSimulation(%f) failed.\n", dt);
+    }
+}
+
 void hwContext::flush()
 {
     m_d3dctx->OMSetDepthStencilState(m_rs_enable_depth, 0);
@@ -646,7 +660,7 @@ void hwContext::flush()
         }
         case CID_SetShader:
         {
-            const auto c = (DrawCommand&)m_commands[i];
+            const auto c = (DrawCommandI&)m_commands[i];
             setShaderImpl(c.arg);
             i += sizeof(c);
             break;
@@ -660,30 +674,27 @@ void hwContext::flush()
         }
         case CID_Render:
         {
-            const auto c = (DrawCommand&)m_commands[i];
+            const auto c = (DrawCommandI&)m_commands[i];
             renderImpl(c.arg);
             i += sizeof(c);
             break;
         }
         case CID_RenderShadow:
         {
-            const auto c = (DrawCommand&)m_commands[i];
+            const auto c = (DrawCommandI&)m_commands[i];
             renderShadowImpl(c.arg);
+            i += sizeof(c);
+            break;
+        }
+        case CID_StepSimulation:
+        {
+            const auto c = (DrawCommandF&)m_commands[i];
+            stepSimulationImpl(c.arg);
             i += sizeof(c);
             break;
         }
         }
     }
     m_commands.clear();
-
-    //m_d3dctx->Flush();
-}
-
-void hwContext::stepSimulation(float dt)
-{
-    if (m_sdk->StepSimulation(dt) != GFSDK_HAIR_RETURN_OK)
-    {
-        hwDebugLog("GFSDK_HairSDK::StepSimulation(%f) failed.\n", dt);
-    }
 }
 

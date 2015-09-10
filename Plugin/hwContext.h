@@ -78,6 +78,7 @@ public:
     // 外に見せる描画系関数はコマンドを積むだけにして、UnityRenderEvent() でそれを flush するという形式をとる。
     enum CommandID
     {
+        CID_StepSimulation,
         CID_SetViewProjection,
         CID_SetRenderTarget,
         CID_SetShader,
@@ -104,10 +105,15 @@ public:
         int num_lights;
         hwLightData lights[hwMaxLights];
     };
-    struct DrawCommand
+    struct DrawCommandI
     {
         CommandID command;
         int arg;
+    };
+    struct DrawCommandF
+    {
+        CommandID command;
+        float arg;
     };
 
 
@@ -149,8 +155,8 @@ public:
     void setLights(int num_lights, const hwLightData *lights);
     void render(hwHInstance hi);
     void renderShadow(hwHInstance hi);
-    void flush();
     void stepSimulation(float dt);
+    void flush();
 
 private:
     hwShaderData&   newShaderData();
@@ -164,6 +170,7 @@ private:
     void setLightsImpl(int num_lights, const hwLightData *lights);
     void renderImpl(hwHInstance hi);
     void renderShadowImpl(hwHInstance hi);
+    void stepSimulationImpl(float dt);
     hwSRV* getSRV(hwTexture *tex);
     hwRTV* getRTV(hwTexture *tex);
 
