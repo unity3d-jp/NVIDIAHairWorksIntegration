@@ -461,6 +461,16 @@ void hwContext::instanceUpdateSkinningDQs(hwHInstance hi, int num_bones, hwDQuat
 }
 
 
+void hwContext::beginScene()
+{
+    m_mutex.lock();
+}
+
+void hwContext::endScene()
+{
+    m_mutex.unlock();
+}
+
 template<class T>
 void hwContext::pushDrawCommand(const T &c)
 {
@@ -508,6 +518,8 @@ void hwContext::renderShadow(hwHInstance hi)
 
 void hwContext::stepSimulation(float dt)
 {
+    std::unique_lock<std::mutex> lock(m_mutex);
+
     DrawCommandF c = { CID_StepSimulation, dt };
     pushDrawCommand(c);
 }
@@ -639,62 +651,67 @@ void hwContext::stepSimulationImpl(float dt)
 
 void hwContext::flush()
 {
-    m_d3dctx->OMSetDepthStencilState(m_rs_enable_depth, 0);
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_commands_back = m_commands;
+        m_commands.clear();
+    }
 
-    for (int i=0; i<m_commands.size(); ) {
-        CommandID cid = (CommandID&)m_commands[i];
+    m_d3dctx->OMSetDepthStencilState(m_rs_enable_depth, 0);
+    auto &commands = m_commands_back;
+    for (int i=0; i<commands.size(); ) {
+        CommandID cid = (CommandID&)commands[i];
         switch (cid) {
         case CID_SetViewProjection:
         {
-            const auto c = (DrawCommandVP&)m_commands[i];
+            const auto c = (DrawCommandVP&)commands[i];
             setViewProjectionImpl(c.view, c.proj, c.fov);
             i += sizeof(c);
             break;
         }
         case CID_SetRenderTarget:
         {
-            const auto c = (DrawCommandRT&)m_commands[i];
+            const auto c = (DrawCommandRT&)commands[i];
             setRenderTargetImpl(c.framebuffer, c.depthbuffer);
             i += sizeof(c);
             break;
         }
         case CID_SetShader:
         {
-            const auto c = (DrawCommandI&)m_commands[i];
+            const auto c = (DrawCommandI&)commands[i];
             setShaderImpl(c.arg);
             i += sizeof(c);
             break;
         }
         case CID_SetLights:
         {
-            const auto c = (DrawCommandL&)m_commands[i];
+            const auto c = (DrawCommandL&)commands[i];
             setLightsImpl(c.num_lights, c.lights);
             i += sizeof(c);
             break;
         }
         case CID_Render:
         {
-            const auto c = (DrawCommandI&)m_commands[i];
+            const auto c = (DrawCommandI&)commands[i];
             renderImpl(c.arg);
             i += sizeof(c);
             break;
         }
         case CID_RenderShadow:
         {
-            const auto c = (DrawCommandI&)m_commands[i];
+            const auto c = (DrawCommandI&)commands[i];
             renderShadowImpl(c.arg);
             i += sizeof(c);
             break;
         }
         case CID_StepSimulation:
         {
-            const auto c = (DrawCommandF&)m_commands[i];
+            const auto c = (DrawCommandF&)commands[i];
             stepSimulationImpl(c.arg);
             i += sizeof(c);
             break;
         }
         }
     }
-    m_commands.clear();
 }
 

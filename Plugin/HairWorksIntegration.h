@@ -70,6 +70,8 @@ hwCLinkage hwExport void            hwInstanceSetTexture(hwHInstance iid, hwText
 hwCLinkage hwExport void            hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_bones, hwMatrix *matrices);
 hwCLinkage hwExport void            hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bones, hwDQuaternion *dqs);
 
+hwCLinkage hwExport void            hwBeginScene();
+hwCLinkage hwExport void            hwEndScene();
 hwCLinkage hwExport void            hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov);
 hwCLinkage hwExport void            hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
 hwCLinkage hwExport void            hwSetShader(hwHShader sid);

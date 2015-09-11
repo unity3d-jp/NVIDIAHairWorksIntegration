@@ -279,6 +279,8 @@ public class HairInstance : MonoBehaviour
 
     static void BeginRender()
     {
+        HairWorksIntegration.hwBeginScene();
+
         var cam = Camera.current;
         if(cam != null)
         {
@@ -313,6 +315,7 @@ public class HairInstance : MonoBehaviour
             cam.AddCommandBuffer(s_timing, s_command_buffer);
             s_cameras.Add(cam);
         }
+        HairWorksIntegration.hwEndScene();
     }
 
 

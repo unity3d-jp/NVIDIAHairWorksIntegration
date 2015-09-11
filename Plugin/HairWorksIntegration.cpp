@@ -15,6 +15,7 @@ struct hwPluginContext
     IUnityGraphicsD3D11 *unity_graphics_d3d11;
     ID3D11Device        *d3d11_device;
     hwContext           *hw_ctx;
+    hwLogCallback       log_callback;
 
     hwPluginContext()
         : unity_interface(nullptr)
@@ -22,6 +23,7 @@ struct hwPluginContext
         , unity_graphics_d3d11(nullptr)
         , d3d11_device(nullptr)
         , hw_ctx(nullptr)
+        , log_callback(nullptr)
     {}
 };
 hwPluginContext g_ctx;
@@ -31,6 +33,7 @@ hwPluginContext g_ctx;
 #define g_unity_graphics_d3d11  g_ctx.unity_graphics_d3d11
 #define g_d3d11_device          g_ctx.d3d11_device
 #define g_hw_ctx                g_ctx.hw_ctx
+#define g_log_callback          g_ctx.log_callback
 
 
 static void UNITY_INTERFACE_API UnityOnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
@@ -126,7 +129,6 @@ extern "C" { int _afxForceUSRDLL; }
 
 
 
-/*hwThreadLocal*/ hwLogCallback g_hwLogCallback;
 
 #ifdef hwDebug
 void hwDebugLogImpl(const char* fmt, ...)
@@ -141,7 +143,7 @@ void hwDebugLogImpl(const char* fmt, ...)
 #else // hwWindows
     printf(buf);
 #endif // hwWindows
-    if (g_hwLogCallback) { g_hwLogCallback(buf); }
+    if (g_log_callback) { g_log_callback(buf); }
 
     va_end(vl);
 }
@@ -201,7 +203,7 @@ hwCLinkage hwExport int hwGetFlushEventID()
 
 hwCLinkage hwExport void hwSetLogCallback(hwLogCallback cb)
 {
-    g_hwLogCallback = cb;
+    g_log_callback = cb;
 }
 
 hwCLinkage hwExport hwHShader hwShaderLoadFromFile(const char *path)
@@ -338,6 +340,19 @@ hwCLinkage hwExport void hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bo
     }
 }
 
+
+hwCLinkage hwExport void hwBeginScene()
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->beginScene();
+    }
+}
+hwCLinkage hwExport void hwEndScene()
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->endScene();
+    }
+}
 
 hwCLinkage hwExport void hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov)
 {

@@ -487,6 +487,8 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_bones, IntPtr matrices);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bones, IntPtr dqs);
 
+    [DllImport ("HairWorksIntegration")] public static extern void          hwBeginScene();
+    [DllImport ("HairWorksIntegration")] public static extern void          hwEndScene();
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetViewProjection(ref Matrix4x4 view, ref Matrix4x4 proj, float fov);
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetRenderTarget(IntPtr framebuffer, IntPtr depthbuffer);
     [DllImport ("HairWorksIntegration")] public static extern void          hwSetShader(hwHShader sid);

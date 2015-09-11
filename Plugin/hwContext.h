@@ -149,6 +149,8 @@ public:
     void            instanceUpdateSkinningMatrices(hwHInstance hi, int num_bones, hwMatrix *matrices);
     void            instanceUpdateSkinningDQs(hwHInstance hi, int num_bones, hwDQuaternion *dqs);
 
+    void beginScene();
+    void endScene();
     void setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov);
     void setRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer);
     void setShader(hwHShader hs);
@@ -182,6 +184,8 @@ private:
     typedef std::map<hwTexture*, hwRTV*>    RTVTable;
     typedef std::vector<char>               DrawCommands;
 
+    std::mutex              m_mutex;
+
     ID3D11Device            *m_d3ddev;
     ID3D11DeviceContext     *m_d3dctx;
     hwSDK                   *m_sdk;
@@ -191,6 +195,7 @@ private:
     SRVTable                m_srvtable;
     RTVTable                m_rtvtable;
     DrawCommands            m_commands;
+    DrawCommands            m_commands_back;
 
     ID3D11DepthStencilState *m_rs_enable_depth;
     ID3D11Buffer            *m_rs_constant_buffer;

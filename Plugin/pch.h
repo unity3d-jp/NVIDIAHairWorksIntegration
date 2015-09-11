@@ -5,6 +5,8 @@
 #include <functional>
 #include <fstream>
 #include <cstdint>
+#include <thread>
+#include <mutex>
 
 #include <d3d11.h>
 #include <directXMath.h>
