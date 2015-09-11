@@ -59,6 +59,7 @@ hwCLinkage hwExport void            hwAssetGetDefaultDescriptor(hwHAsset aid, hw
 hwCLinkage hwExport hwHInstance     hwInstanceCreate(hwHAsset aid);
 hwCLinkage hwExport void            hwInstanceRelease(hwHInstance iid);
 hwCLinkage hwExport void            hwInstanceGetAssetID(hwHInstance iid);
+hwCLinkage hwExport void            hwInstanceGetBounds(hwHInstance iid, hwFloat3 *o_min, hwFloat3 *o_max);
 hwCLinkage hwExport void            hwInstanceGetDescriptor(hwHInstance iid, hwHairDescriptor *o_desc);
 hwCLinkage hwExport void            hwInstanceSetDescriptor(hwHInstance iid, const hwHairDescriptor *desc);
 hwCLinkage hwExport void            hwInstanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex);

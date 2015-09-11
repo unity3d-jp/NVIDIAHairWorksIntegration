@@ -143,6 +143,7 @@ public:
 
     hwHInstance     instanceCreate(hwHAsset ha);
     void            instanceRelease(hwHInstance hi);
+    void            instanceGetBounds(hwHInstance hi, hwFloat3 &o_min, hwFloat3 &o_max) const;
     void            instanceGetDescriptor(hwHInstance hi, hwHairDescriptor &desc) const;
     void            instanceSetDescriptor(hwHInstance hi, const hwHairDescriptor &desc);
     void            instanceSetTexture(hwHInstance hi, hwTextureType type, hwTexture *tex);

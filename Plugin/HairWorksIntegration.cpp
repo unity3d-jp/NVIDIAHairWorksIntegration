@@ -304,6 +304,12 @@ hwCLinkage hwExport void hwInstanceRelease(hwHInstance iid)
         ctx->instanceRelease(iid);
     }
 }
+hwCLinkage hwExport void hwInstanceGetBounds(hwHInstance iid, hwFloat3 *o_min, hwFloat3 *o_max)
+{
+    if (auto ctx = hwGetContext()) {
+        ctx->instanceGetBounds(iid, *o_min, *o_max);
+    }
+}
 hwCLinkage hwExport void hwInstanceGetDescriptor(hwHInstance iid, hwHairDescriptor *desc)
 {
     if (auto ctx = hwGetContext()) {

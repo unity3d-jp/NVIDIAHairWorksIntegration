@@ -12,7 +12,6 @@ using UnityEditor;
 
 
 [AddComponentMenu("Hair Works Integration/Hair Instance")]
-[RequireComponent(typeof(Renderer))]
 public class HairInstance : MonoBehaviour
 {
     #region static
@@ -41,6 +40,7 @@ public class HairInstance : MonoBehaviour
     public hwConversionSettings m_load_settings = hwConversionSettings.default_value;
     public hwDescriptor m_params = hwDescriptor.default_value;
     public bool m_use_default_descriptor = true;
+    public Mesh m_probe_mesh;
     hwHShader m_hshader = hwHShader.NullHandle;
     hwHAsset m_hasset = hwHAsset.NullHandle;
     hwHInstance m_hinstance = hwHInstance.NullHandle;
@@ -177,6 +177,28 @@ public class HairInstance : MonoBehaviour
     }
 
 
+
+#if UNITY_EDITOR
+    void Reset()
+    {
+        m_root_bone = GetComponent<Transform>();
+
+        var renderer = GetComponent<Renderer>();
+        if(renderer == null)
+        {
+            m_probe_mesh = new Mesh();
+            m_probe_mesh.name = "Probe";
+            m_probe_mesh.vertices = new Vector3[1] { Vector3.zero };
+            m_probe_mesh.SetIndices(new int[1] { 0 }, MeshTopology.Points, 0);
+
+            var mesh_filter = gameObject.AddComponent<MeshFilter>();
+            mesh_filter.sharedMesh = m_probe_mesh;
+            renderer = gameObject.AddComponent<MeshRenderer>();
+            renderer.sharedMaterials = new Material[0] { };
+        }
+    }
+#endif
+
     void Awake()
     {
         HairWorksIntegration.hwSetLogCallback();
@@ -213,6 +235,18 @@ public class HairInstance : MonoBehaviour
         UpdateBones();
         HairWorksIntegration.hwInstanceSetDescriptor(m_hinstance, ref m_params);
         HairWorksIntegration.hwInstanceUpdateSkinningMatrices(m_hinstance, m_skinning_matrices.Length, m_skinning_matrices_ptr);
+
+        if (m_probe_mesh != null)
+        {
+            var bmin = Vector3.zero;
+            var bmax = Vector3.zero;
+            HairWorksIntegration.hwInstanceGetBounds(m_hinstance, ref bmin, ref bmax);
+
+            var center = (bmin + bmax) * 0.5f;
+            var size = bmax - center;
+            m_probe_mesh.bounds = new Bounds(center, size);
+        }
+
 
         s_nth_LateUpdate = 0;
     }

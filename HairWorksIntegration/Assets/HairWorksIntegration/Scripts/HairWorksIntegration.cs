@@ -483,6 +483,7 @@ public static class HairWorksIntegration
 
     [DllImport ("HairWorksIntegration")] public static extern hwHInstance   hwInstanceCreate(hwHAsset aid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwInstanceRelease(hwHInstance iid);
+    [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetBounds(hwHInstance iid, ref Vector3 o_min, ref Vector3 o_max);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceGetDescriptor(hwHInstance iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetDescriptor(hwHInstance iid, ref hwDescriptor desc);
     [DllImport ("HairWorksIntegration")] public static extern void          hwInstanceSetTexture(hwHInstance iid, hwTextureType type, IntPtr tex);

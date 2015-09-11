@@ -403,6 +403,16 @@ void hwContext::instanceRelease(hwHInstance hi)
     v.invalidate();
 }
 
+void hwContext::instanceGetBounds(hwHInstance hi, hwFloat3 &o_min, hwFloat3 &o_max) const
+{
+    if (hi >= m_instances.size()) { return; }
+    auto &v = m_instances[hi];
+
+    if (m_sdk->GetBounds(v.iid, &o_min, &o_max) != GFSDK_HAIR_RETURN_OK)
+    {
+        hwDebugLog("GFSDK_HairSDK::GetBounds(%d) failed.\n", hi);
+    }
+}
 
 void hwContext::instanceGetDescriptor(hwHInstance hi, hwHairDescriptor &desc) const
 {
