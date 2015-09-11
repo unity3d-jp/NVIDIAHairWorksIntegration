@@ -25,8 +25,7 @@ typedef void(__stdcall *hwLogCallback)(const char *);
 #define hwNullAssetID       GFSDK_HairAssetID_NULL
 #define hwNullInstanceID    GFSDK_HairInstanceID_NULL
 #define hwNullHandle        0xFFFFFFFF
-#define hwFlushEventID      0x14840001
-#define hwMaxLights         4
+#define hwMaxLights         8
 
 
 struct  hwShaderData;
@@ -37,10 +36,6 @@ class   hwContext;
 
 
 // Unity plugin callbacks
-hwCLinkage hwExport void            UnitySetGraphicsDevice(void* device, int deviceType, int eventType);
-hwCLinkage hwExport void            UnityRenderEvent(int eventID);
-
-
 hwCLinkage hwExport bool            hwInitialize();
 hwCLinkage hwExport void            hwFinalize();
 hwCLinkage hwExport hwContext*      hwGetContext();

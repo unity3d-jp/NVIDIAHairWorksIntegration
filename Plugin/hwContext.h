@@ -48,14 +48,14 @@ enum hwELightType
 struct hwLightData
 {
     hwELightType type; int pad[3];
-    hwFloat3 position; // direction if directional light, position if point light
-    float range;
+    hwFloat4 position; // w: range
+    hwFloat4 direction;
     hwFloat4 color;
 
     hwLightData()
         : type(hwELightType_Directional)
-        , position({ 0.0f, 0.0f, 0.0f })
-        , range(0.0f)
+        , position({ 0.0f, 0.0f, 0.0f, 0.0f })
+        , direction({ 0.0f, 0.0f, 0.0f, 0.0f })
         , color({ 1.0f, 1.0f, 1.0f, 1.0 })
     {}
 };

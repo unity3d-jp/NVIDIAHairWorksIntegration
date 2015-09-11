@@ -5,12 +5,14 @@ using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 
 [AddComponentMenu("Hair Works Integration/Hair Light")]
+[RequireComponent(typeof(Light))]
 public class HairLight : MonoBehaviour
 {
     #region static
@@ -54,29 +56,34 @@ public class HairLight : MonoBehaviour
         Point,
     }
 
-    public Type m_type;
-    public float m_range = 5.0f;
-    public Color m_color = Color.white;
-    [Range(0.0f, 8.0f)] public float m_intensity = 1.0f;
-
     hwLightData m_data;
 
+    public bool m_copy_light_params = false;
+    public LightType m_type = LightType.Directional;
+    public float m_range = 10.0f;
+    public Color m_color = Color.white;
+    public float m_intensity = 1.0f;
+    CommandBuffer m_cb;
 
-    hwLightData GetLightData()
+    public CommandBuffer GetCommandBuffer()
+    {
+        if(m_cb == null)
+        {
+            m_cb = new CommandBuffer();
+            m_cb.name = "Hair Shadow";
+            GetComponent<Light>().AddCommandBuffer(LightEvent.AfterShadowMap, m_cb);
+        }
+        return m_cb;
+    }
+
+    public hwLightData GetLightData()
     {
         var t = GetComponent<Transform>();
         m_data.type = (int)m_type;
         m_data.range = m_range;
-        m_data.color = new Color(m_color.r*m_intensity, m_color.g*m_intensity, m_color.b*m_intensity, 0.0f);
-        switch (m_type)
-        {
-            case Type.Directional:
-                m_data.position = t.forward;
-                break;
-            case Type.Point:
-                m_data.position = t.position;
-                break;
-        }
+        m_data.color = new Color(m_color.r * m_intensity, m_color.g * m_intensity, m_color.b * m_intensity, 0.0f);
+        m_data.position = t.position;
+        m_data.direction = t.forward;
         return m_data;
 
     }
@@ -98,37 +105,14 @@ public class HairLight : MonoBehaviour
 
     void Update()
     {
-    }
-
-
-    void OnDrawGizmos()
-    {
-        if(GetComponent<Light>() != null) { return; }
-
-        var t = GetComponent<Transform>();
-        switch(m_type)
+        if(m_copy_light_params)
         {
-            case Type.Directional:
-                Gizmos.DrawIcon(t.position, "DirectionalLight Gizmo", true);
-                break;
-            case Type.Point:
-                Gizmos.DrawIcon(t.position, "PointLight Gizmo", true);
-                break;
+            var l = GetComponent<Light>();
+            m_type = l.type;
+            m_range = l.range;
+            m_color = l.color;
+            m_intensity = l.intensity;
         }
     }
 
-    void OnDrawGizmosSelected()
-    {
-        if (GetComponent<Light>() != null) { return; }
-
-        var t = GetComponent<Transform>();
-        switch (m_type)
-        {
-            case Type.Directional:
-                break;
-            case Type.Point:
-                Gizmos.DrawWireSphere(transform.position, m_range);
-                break;
-        }
-    }
 }

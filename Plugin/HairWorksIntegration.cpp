@@ -194,11 +194,6 @@ hwCLinkage hwExport hwContext* hwGetContext()
     return g_hw_ctx;
 }
 
-hwCLinkage hwExport int hwGetFlushEventID()
-{
-    return hwFlushEventID;
-}
-
 
 
 hwCLinkage hwExport void hwSetLogCallback(hwLogCallback cb)

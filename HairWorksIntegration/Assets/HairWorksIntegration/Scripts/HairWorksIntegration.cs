@@ -391,12 +391,14 @@ public struct hwConversionSettings
 [System.Serializable]
 public struct hwLightData
 {
-    public const int MaxLights = 4;
+    public const int MaxLights = 8;
 
     public int type;
     int pad0, pad2, pad3;
     public Vector3 position;
     public float range;
+    public Vector3 direction;
+    float pad4;
     public Color color;
 }
 

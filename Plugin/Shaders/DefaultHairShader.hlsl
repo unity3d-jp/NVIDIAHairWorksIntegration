@@ -1,15 +1,16 @@
 #include "GFSDK_HairWorks_ShaderCommon.h" 
 
-#define MaxLights               4
+#define MaxLights               8
 
-#define LightType_Directional   0
-#define LightType_Point         1
+#define LightType_Spot          0
+#define LightType_Directional   1
+#define LightType_Point         2
 
 struct LightData
 {
-    int4 type;   // x: light type
-    float4 position;// xyz: direction if directional light, position if point light
-                    // w: range
+    int4 type;          // x: light type
+    float4 position;    // w: range
+    float4 direction;
     float4 color;
 };
 
@@ -24,6 +25,21 @@ cbuffer cbPerFrame : register(b0)
     int4                        g_numLights;        // x: num lights
     LightData                   g_lights[MaxLights];
     GFSDK_Hair_ConstantBuffer   g_hairConstantBuffer;
+}
+
+cbuffer UnityPerDraw
+{
+    float4x4 glstate_matrix_mvp;
+    float4x4 glstate_matrix_modelview0;
+    float4x4 glstate_matrix_invtrans_modelview0;
+#define UNITY_MATRIX_MVP glstate_matrix_mvp
+#define UNITY_MATRIX_MV glstate_matrix_modelview0
+#define UNITY_MATRIX_IT_MV glstate_matrix_invtrans_modelview0
+
+    float4x4 _Object2World;
+    float4x4 _World2Object;
+    float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
+    float4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
 }
 
 
@@ -50,7 +66,7 @@ float4 ps_main(GFSDK_Hair_PixelShaderInput input) : SV_Target
         float3 Ldir;
         float atten = 1.0;
         if (g_lights[i].type.x == LightType_Directional) {
-            Ldir = g_lights[i].position.xyz;
+            Ldir = g_lights[i].direction.xyz;
         }
         else if (g_lights[i].type.x == LightType_Point) {
             float range = g_lights[i].position.w;

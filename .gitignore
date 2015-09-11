@@ -22,6 +22,7 @@ _tmp/
 Externals/
 Library/
 Temp/
+Build/
 Hidden/
 Hidden.meta
 obj/
