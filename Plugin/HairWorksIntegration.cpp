@@ -228,7 +228,7 @@ hwCLinkage hwExport hwHAsset hwAssetLoadFromFile(const char *path, const hwConve
 {
     if (path == nullptr || path[0]=='\0') { return hwNullHandle; }
     if (auto ctx = hwGetContext()) {
-        return ctx->assetLoadFromFile(path, *conv);
+        return ctx->assetLoadFromFile(path, conv);
     }
     return hwNullHandle;
 }

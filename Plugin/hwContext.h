@@ -131,7 +131,7 @@ public:
     void            shaderRelease(hwHShader hs);
     void            shaderReload(hwHShader hs);
 
-    hwHAsset        assetLoadFromFile(const std::string &path, const hwConversionSettings &conv);
+    hwHAsset        assetLoadFromFile(const std::string &path, const hwConversionSettings *conv);
     void            assetRelease(hwHAsset ha);
     void            assetReload(hwHAsset ha);
     int             assetGetNumBones(hwHAsset ha) const;

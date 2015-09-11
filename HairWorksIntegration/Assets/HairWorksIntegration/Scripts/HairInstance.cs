@@ -125,15 +125,6 @@ public class HairInstance : MonoBehaviour
         if (m_bones == null || m_bones.Length != num_bones)
         {
             m_bones = new Transform[num_bones];
-            m_inv_bindpose = new Matrix4x4[num_bones];
-            m_skinning_matrices = new Matrix4x4[num_bones];
-            m_skinning_matrices_ptr = IntPtr.Zero;
-
-            for (int i = 0; i < num_bones; ++i)
-            {
-                m_inv_bindpose[i] = Matrix4x4.identity;
-                m_skinning_matrices[i] = Matrix4x4.identity;
-            }
 
             if (m_root_bone == null)
             {
@@ -146,14 +137,26 @@ public class HairInstance : MonoBehaviour
                 string name = HairWorksIntegration.hwAssetGetBoneNameString(m_hasset, i);
                 m_bones[i] = Array.Find(children, (a) => { return a.name == name; });
                 if (m_bones[i] == null) { m_bones[i] = m_root_bone; }
-                HairWorksIntegration.hwAssetGetBindPose(m_hasset, i, ref m_inv_bindpose[i]);
-                //m_inv_bindpose[i] = m_bones[i].localToWorldMatrix;
-                m_inv_bindpose[i] = m_inv_bindpose[i].inverse;
             }
 
         }
-        if(m_skinning_matrices_ptr == IntPtr.Zero)
+
+        if(m_skinning_matrices==null)
         {
+            m_inv_bindpose = new Matrix4x4[num_bones];
+            m_skinning_matrices = new Matrix4x4[num_bones];
+            for (int i = 0; i < num_bones; ++i)
+            {
+                m_inv_bindpose[i] = Matrix4x4.identity;
+                m_skinning_matrices[i] = Matrix4x4.identity;
+            }
+
+            for (int i = 0; i < num_bones; ++i)
+            {
+                HairWorksIntegration.hwAssetGetBindPose(m_hasset, i, ref m_inv_bindpose[i]);
+                m_inv_bindpose[i] = m_inv_bindpose[i].inverse;
+            }
+
             m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
         }
 
@@ -162,9 +165,7 @@ public class HairInstance : MonoBehaviour
             var t = m_bones[i];
             if (t != null)
             {
-                //m_skinning_matrices[i] = t.localToWorldMatrix * m_inv_bindpose[i];
-                m_skinning_matrices[i] = t.localToWorldMatrix;
-                //m_skinning_matrices[i] = Matrix4x4.identity;
+                m_skinning_matrices[i] = t.localToWorldMatrix * m_inv_bindpose[i];
             }
         }
     }
@@ -181,7 +182,8 @@ public class HairInstance : MonoBehaviour
 #if UNITY_EDITOR
     void Reset()
     {
-        m_root_bone = GetComponent<Transform>();
+        var skinned_mesh_renderer = GetComponent<SkinnedMeshRenderer>();
+        m_root_bone = skinned_mesh_renderer!=null ? skinned_mesh_renderer.rootBone : GetComponent<Transform>();
 
         var renderer = GetComponent<Renderer>();
         if(renderer == null)

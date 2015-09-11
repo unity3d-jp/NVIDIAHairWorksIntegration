@@ -241,8 +241,11 @@ hwAssetData& hwContext::newAssetData()
     return m_assets.back();
 }
 
-hwHAsset hwContext::assetLoadFromFile(const std::string &path, const hwConversionSettings &settings)
+hwHAsset hwContext::assetLoadFromFile(const std::string &path, const hwConversionSettings *_settings)
 {
+    hwConversionSettings settings;
+    if (_settings != nullptr) { settings = *_settings; }
+
     {
         auto i = std::find_if(m_assets.begin(), m_assets.end(),
             [&](const hwAssetData &v) { return v.path == path && v.settings==settings; });
