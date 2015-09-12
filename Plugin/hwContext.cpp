@@ -453,6 +453,7 @@ void hwContext::instanceSetTexture(hwHInstance hi, hwTextureType type, hwTexture
 
 void hwContext::instanceUpdateSkinningMatrices(hwHInstance hi, int num_bones, hwMatrix *matrices)
 {
+    if (matrices == nullptr) { return; }
     if (hi >= m_instances.size()) { return; }
     auto &v = m_instances[hi];
 
@@ -464,6 +465,7 @@ void hwContext::instanceUpdateSkinningMatrices(hwHInstance hi, int num_bones, hw
 
 void hwContext::instanceUpdateSkinningDQs(hwHInstance hi, int num_bones, hwDQuaternion *dqs)
 {
+    if (dqs == nullptr) { return; }
     if (hi >= m_instances.size()) { return; }
     auto &v = m_instances[hi];
 

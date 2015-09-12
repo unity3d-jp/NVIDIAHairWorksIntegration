@@ -467,7 +467,7 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderRelease(hwHShader sid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwShaderReload(hwHShader sid);
 
-    [DllImport ("HairWorksIntegration")] public static extern hwHAsset      hwAssetLoadFromFile(string path, ref hwConversionSettings conv);
+    [DllImport ("HairWorksIntegration")] public static extern hwHAsset      hwAssetLoadFromFile(string path);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetRelease(hwHAsset aid);
     [DllImport ("HairWorksIntegration")] public static extern bool          hwAssetReload(hwHAsset aid);
     [DllImport ("HairWorksIntegration")] public static extern int           hwAssetGetNumBones(hwHAsset aid);
@@ -507,10 +507,11 @@ public static class HairWorksIntegration
 
     public static void hwSetLogCallback()
     {
-        if(Application.isEditor)
-        {
-            hwSetLogCallback(LogCallback);
-        }
+        //// for debug
+        //if(Application.isEditor)
+        //{
+        //    hwSetLogCallback(LogCallback);
+        //}
     }
 
 }

@@ -13,6 +13,7 @@ using UnityEditor;
 
 [AddComponentMenu("Hair Works Integration/Hair Light")]
 [RequireComponent(typeof(Light))]
+[ExecuteInEditMode]
 public class HairLight : MonoBehaviour
 {
     #region static

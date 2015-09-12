@@ -46,7 +46,7 @@ hwCLinkage hwExport hwHShader       hwShaderLoadFromFile(const char *path);
 hwCLinkage hwExport void            hwShaderRelease(hwHShader sid);
 hwCLinkage hwExport void            hwShaderReload(hwHShader sid);
 
-hwCLinkage hwExport hwHAsset        hwAssetLoadFromFile(const char *path, const hwConversionSettings *conv);
+hwCLinkage hwExport hwHAsset        hwAssetLoadFromFile(const char *path);
 hwCLinkage hwExport void            hwAssetRelease(hwHAsset aid);
 hwCLinkage hwExport void            hwAssetReload(hwHAsset aid);
 hwCLinkage hwExport int             hwAssetGetNumBones(hwHAsset aid);

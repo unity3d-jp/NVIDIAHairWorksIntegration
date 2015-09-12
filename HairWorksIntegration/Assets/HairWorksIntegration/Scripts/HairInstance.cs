@@ -12,6 +12,7 @@ using UnityEditor;
 
 
 [AddComponentMenu("Hair Works Integration/Hair Instance")]
+[ExecuteInEditMode]
 public class HairInstance : MonoBehaviour
 {
     #region static
@@ -39,9 +40,8 @@ public class HairInstance : MonoBehaviour
     public Transform m_root_bone;
     public bool m_invert_bone_x = true;
 
-    public hwConversionSettings m_load_settings = hwConversionSettings.default_value;
+    public bool m_use_default_params = true;
     public hwDescriptor m_params = hwDescriptor.default_value;
-    public bool m_use_default_descriptor = true;
     public Mesh m_probe_mesh;
     hwHShader m_hshader = hwHShader.NullHandle;
     hwHAsset m_hasset = hwHAsset.NullHandle;
@@ -80,7 +80,7 @@ public class HairInstance : MonoBehaviour
         HairWorksIntegration.hwShaderReload(m_hshader);
     }
 
-    public void LoadHairAsset(string path_to_apx)
+    public void LoadHairAsset(string path_to_apx, bool reset_bones=true)
     {
         // release existing instance & asset
         if (m_hinstance)
@@ -95,20 +95,23 @@ public class HairInstance : MonoBehaviour
         }
 
         // load & create instance
-        if (m_hasset = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx, ref m_load_settings))
+        if (m_hasset = HairWorksIntegration.hwAssetLoadFromFile(Application.streamingAssetsPath + "/" + path_to_apx))
         {
             m_hair_asset = path_to_apx;
             m_hinstance = HairWorksIntegration.hwInstanceCreate(m_hasset);
-            if(m_use_default_descriptor)
+            if(m_use_default_params)
             {
                 HairWorksIntegration.hwAssetGetDefaultDescriptor(m_hasset, ref m_params);
             }
         }
 
         // update bone structure
-        m_bones = null;
-        m_skinning_matrices = null;
-        m_skinning_matrices_ptr = IntPtr.Zero;
+        if(reset_bones)
+        {
+            m_bones = null;
+            m_skinning_matrices = null;
+            m_skinning_matrices_ptr = IntPtr.Zero;
+        }
         UpdateBones();
     }
 
@@ -144,7 +147,7 @@ public class HairInstance : MonoBehaviour
 
         }
 
-        if(m_skinning_matrices==null)
+        if(m_skinning_matrices == null)
         {
             m_inv_bindpose = new Matrix4x4[num_bones];
             m_skinning_matrices = new Matrix4x4[num_bones];
@@ -209,6 +212,11 @@ public class HairInstance : MonoBehaviour
         }
     }
 #endif
+
+    void OnApplicationQuit()
+    {
+        ClearCommandBuffer();
+    }
 
     void Awake()
     {
@@ -324,7 +332,12 @@ public class HairInstance : MonoBehaviour
 
     static void BeginRender()
     {
-        HairWorksIntegration.hwBeginScene();
+        if (s_command_buffer == null)
+        {
+            s_command_buffer = new CommandBuffer();
+            s_command_buffer.name = "Hair";
+            s_command_buffer.IssuePluginEvent(HairWorksIntegration.hwGetRenderEventFunc(), 0);
+        }
 
         var cam = Camera.current;
         if(cam != null)
@@ -334,7 +347,15 @@ public class HairInstance : MonoBehaviour
             float fov = cam.fieldOfView;
             HairWorksIntegration.hwSetViewProjection(ref V, ref P, fov);
             HairLight.AssignLightData();
+
+            if (!s_cameras.Contains(cam))
+            {
+                cam.AddCommandBuffer(s_timing, s_command_buffer);
+                s_cameras.Add(cam);
+            }
         }
+
+        HairWorksIntegration.hwBeginScene();
     }
 
     void Render()
@@ -347,36 +368,7 @@ public class HairInstance : MonoBehaviour
 
     static void EndRender()
     {
-        if (s_command_buffer == null)
-        {
-            s_command_buffer = new CommandBuffer();
-            s_command_buffer.name = "Hair";
-            s_command_buffer.IssuePluginEvent(HairWorksIntegration.hwGetRenderEventFunc(), 0);
-        }
-
-        var cam = Camera.current;
-        if(cam != null && !s_cameras.Contains(cam))
-        {
-            cam.AddCommandBuffer(s_timing, s_command_buffer);
-            s_cameras.Add(cam);
-        }
         HairWorksIntegration.hwEndScene();
     }
-
-
-    //void OnDrawGizmos()
-    //{
-    //    // just for debug
-    //    if (m_inv_bindpose != null)
-    //    {
-    //        Vector3 size = new Vector3(0.1f, 0.1f, 0.1f);
-    //        Vector4 pos = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-    //        Gizmos.color = Color.cyan;
-    //        foreach (var m in m_inv_bindpose)
-    //        {
-    //            Gizmos.DrawWireCube(m.inverse * pos, size);
-    //        }
-    //    }
-    //}
 
 }

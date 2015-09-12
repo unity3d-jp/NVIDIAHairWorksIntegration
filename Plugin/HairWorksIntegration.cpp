@@ -224,11 +224,11 @@ hwCLinkage hwExport void hwShaderReload(hwHShader sid)
 }
 
 
-hwCLinkage hwExport hwHAsset hwAssetLoadFromFile(const char *path, const hwConversionSettings *conv)
+hwCLinkage hwExport hwHAsset hwAssetLoadFromFile(const char *path)
 {
     if (path == nullptr || path[0]=='\0') { return hwNullHandle; }
     if (auto ctx = hwGetContext()) {
-        return ctx->assetLoadFromFile(path, conv);
+        return ctx->assetLoadFromFile(path, nullptr);
     }
     return hwNullHandle;
 }
