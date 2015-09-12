@@ -37,6 +37,8 @@ public class HairInstance : MonoBehaviour
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
     public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
     public Transform m_root_bone;
+    public bool m_invert_bone_x = true;
+
     public hwConversionSettings m_load_settings = hwConversionSettings.default_value;
     public hwDescriptor m_params = hwDescriptor.default_value;
     public bool m_use_default_descriptor = true;
@@ -49,6 +51,7 @@ public class HairInstance : MonoBehaviour
     Matrix4x4[] m_inv_bindpose;
     Matrix4x4[] m_skinning_matrices;
     IntPtr m_skinning_matrices_ptr;
+    Matrix4x4 m_conversion_matrix;
 
 
     public uint shader_id { get { return m_hshader; } }
@@ -145,6 +148,7 @@ public class HairInstance : MonoBehaviour
         {
             m_inv_bindpose = new Matrix4x4[num_bones];
             m_skinning_matrices = new Matrix4x4[num_bones];
+            m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
             for (int i = 0; i < num_bones; ++i)
             {
                 m_inv_bindpose[i] = Matrix4x4.identity;
@@ -157,15 +161,20 @@ public class HairInstance : MonoBehaviour
                 m_inv_bindpose[i] = m_inv_bindpose[i].inverse;
             }
 
-            m_skinning_matrices_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(m_skinning_matrices, 0);
+            m_conversion_matrix = Matrix4x4.identity;
+            if (m_invert_bone_x)
+            {
+                m_conversion_matrix *= Matrix4x4.Scale(new Vector3(-1.0f, 1.0f, 1.0f));
+            }
         }
+
 
         for (int i = 0; i < m_bones.Length; ++i)
         {
             var t = m_bones[i];
             if (t != null)
             {
-                m_skinning_matrices[i] = t.localToWorldMatrix * m_inv_bindpose[i];
+                m_skinning_matrices[i] = t.localToWorldMatrix * m_conversion_matrix * m_inv_bindpose[i];
             }
         }
     }
