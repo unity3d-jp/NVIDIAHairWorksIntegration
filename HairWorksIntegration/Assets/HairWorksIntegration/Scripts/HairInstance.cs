@@ -35,14 +35,11 @@ public class HairInstance : MonoBehaviour
 
     static CameraEvent s_timing = CameraEvent.BeforeImageEffects;
 
+    public string m_hair_asset;
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
-    public string m_hair_asset = "HairWorksIntegration/ExampleAsset.apx";
     public Transform m_root_bone;
     public bool m_invert_bone_x = true;
-
-    public bool m_use_default_params = true;
     public hwDescriptor m_params = hwDescriptor.default_value;
-    public Mesh m_probe_mesh;
     hwHShader m_hshader = hwHShader.NullHandle;
     hwHAsset m_hasset = hwHAsset.NullHandle;
     hwHInstance m_hinstance = hwHInstance.NullHandle;
@@ -53,11 +50,24 @@ public class HairInstance : MonoBehaviour
     IntPtr m_skinning_matrices_ptr;
     Matrix4x4 m_conversion_matrix;
 
+    public Mesh m_probe_mesh;
+
 
     public uint shader_id { get { return m_hshader; } }
     public uint asset_id { get { return m_hasset; } }
     public uint instance_id { get { return m_hinstance; } }
 
+
+
+    void RepaintWindow()
+    {
+#if UNITY_EDITOR
+        var assembly = typeof(UnityEditor.EditorWindow).Assembly;
+        var type = assembly.GetType("UnityEditor.GameView");
+        var gameview = EditorWindow.GetWindow(type);
+        gameview.Repaint();
+#endif
+    }
 
     public void LoadHairShader(string path_to_cso)
     {
@@ -73,14 +83,18 @@ public class HairInstance : MonoBehaviour
         {
             m_hair_shader = path_to_cso;
         }
+#if UNITY_EDITOR
+        RepaintWindow();
+#endif
     }
 
     public void ReloadHairShader()
     {
         HairWorksIntegration.hwShaderReload(m_hshader);
+        RepaintWindow();
     }
 
-    public void LoadHairAsset(string path_to_apx, bool reset_bones=true)
+    public void LoadHairAsset(string path_to_apx, bool reset_params=true)
     {
         // release existing instance & asset
         if (m_hinstance)
@@ -99,25 +113,34 @@ public class HairInstance : MonoBehaviour
         {
             m_hair_asset = path_to_apx;
             m_hinstance = HairWorksIntegration.hwInstanceCreate(m_hasset);
-            if(m_use_default_params)
+            if(reset_params)
             {
                 HairWorksIntegration.hwAssetGetDefaultDescriptor(m_hasset, ref m_params);
             }
         }
 
         // update bone structure
-        if(reset_bones)
+        if(reset_params)
         {
             m_bones = null;
             m_skinning_matrices = null;
             m_skinning_matrices_ptr = IntPtr.Zero;
         }
         UpdateBones();
+
+#if UNITY_EDITOR
+        Update();
+        RepaintWindow();
+#endif
     }
+
 
     public void ReloadHairAsset()
     {
         HairWorksIntegration.hwAssetReload(m_hasset);
+        HairWorksIntegration.hwAssetGetDefaultDescriptor(m_hasset, ref m_params);
+        HairWorksIntegration.hwInstanceSetDescriptor(m_hinstance, ref m_params);
+        RepaintWindow();
     }
 
     public void AssignTexture(hwTextureType type, Texture2D tex)
@@ -244,7 +267,7 @@ public class HairInstance : MonoBehaviour
     void Start()
     {
         LoadHairShader(m_hair_shader);
-        LoadHairAsset(m_hair_asset);
+        LoadHairAsset(m_hair_asset, false);
     }
 
     void Update()
