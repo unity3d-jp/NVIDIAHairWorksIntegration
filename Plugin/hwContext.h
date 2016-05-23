@@ -1,5 +1,4 @@
-﻿#ifndef hwContext_h
-#define hwContext_h
+﻿#pragma once
 
 struct hwShaderData
 {
@@ -203,5 +202,3 @@ private:
 
     hwConstantBuffer        m_cb;
 };
-
-#endif // hwContext_h

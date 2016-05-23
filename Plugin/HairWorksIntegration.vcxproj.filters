@@ -9,6 +9,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="HairWorksIntegration.h" />
     <ClInclude Include="hwContext.h" />
+    <ClInclude Include="hwInternal.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">

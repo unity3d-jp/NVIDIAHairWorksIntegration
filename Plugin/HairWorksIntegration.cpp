@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "HairWorksIntegration.h"
+#include "hwInternal.h"
 #include "hwContext.h"
 
 #if defined(_M_IX86)
@@ -83,7 +83,7 @@ hwGetRenderEventFunc()
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // PatchLibrary 用のコンテキスト移動処理群
 
-hwCLinkage hwExport hwPluginContext* hwGetPluginContext()
+hwExport hwPluginContext* hwGetPluginContext()
 {
     return &g_ctx;
 }
@@ -150,8 +150,9 @@ void hwDebugLogImpl(const char* fmt, ...)
 #endif // hwDebug
 
 
+extern "C" {
 
-hwCLinkage hwExport bool hwInitialize()
+hwExport bool hwInitialize()
 {
     if (g_hw_ctx != nullptr) {
         return true;
@@ -182,13 +183,13 @@ hwCLinkage hwExport bool hwInitialize()
     }
 }
 
-hwCLinkage hwExport void hwFinalize()
+hwExport void hwFinalize()
 {
     delete g_hw_ctx;
     g_hw_ctx = nullptr;
 }
 
-hwCLinkage hwExport hwContext* hwGetContext()
+hwExport hwContext* hwGetContext()
 {
     hwInitialize();
     return g_hw_ctx;
@@ -196,12 +197,12 @@ hwCLinkage hwExport hwContext* hwGetContext()
 
 
 
-hwCLinkage hwExport void hwSetLogCallback(hwLogCallback cb)
+hwExport void hwSetLogCallback(hwLogCallback cb)
 {
     g_log_callback = cb;
 }
 
-hwCLinkage hwExport hwHShader hwShaderLoadFromFile(const char *path)
+hwExport hwHShader hwShaderLoadFromFile(const char *path)
 {
     if (path == nullptr || path[0] == '\0') { return hwNullHandle; }
     if (auto ctx = hwGetContext()) {
@@ -209,14 +210,14 @@ hwCLinkage hwExport hwHShader hwShaderLoadFromFile(const char *path)
     }
     return hwNullHandle;
 }
-hwCLinkage hwExport void hwShaderRelease(hwHShader sid)
+hwExport void hwShaderRelease(hwHShader sid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->shaderRelease(sid);
     }
 }
 
-hwCLinkage hwExport void hwShaderReload(hwHShader sid)
+hwExport void hwShaderReload(hwHShader sid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->shaderReload(sid);
@@ -224,7 +225,7 @@ hwCLinkage hwExport void hwShaderReload(hwHShader sid)
 }
 
 
-hwCLinkage hwExport hwHAsset hwAssetLoadFromFile(const char *path)
+hwExport hwHAsset hwAssetLoadFromFile(const char *path)
 {
     if (path == nullptr || path[0]=='\0') { return hwNullHandle; }
     if (auto ctx = hwGetContext()) {
@@ -232,21 +233,21 @@ hwCLinkage hwExport hwHAsset hwAssetLoadFromFile(const char *path)
     }
     return hwNullHandle;
 }
-hwCLinkage hwExport void hwAssetRelease(hwHAsset aid)
+hwExport void hwAssetRelease(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetRelease(aid);
     }
 }
 
-hwCLinkage hwExport void hwAssetReload(hwHAsset aid)
+hwExport void hwAssetReload(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetReload(aid);
     }
 }
 
-hwCLinkage hwExport int hwAssetGetNumBones(hwHAsset aid)
+hwExport int hwAssetGetNumBones(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         return ctx->assetGetNumBones(aid);
@@ -254,7 +255,7 @@ hwCLinkage hwExport int hwAssetGetNumBones(hwHAsset aid)
     return 0;
 }
 
-hwCLinkage hwExport const char* hwAssetGetBoneName(hwHAsset aid, int nth)
+hwExport const char* hwAssetGetBoneName(hwHAsset aid, int nth)
 {
     if (auto ctx = hwGetContext()) {
         return ctx->assetGetBoneName(aid, nth);
@@ -262,28 +263,28 @@ hwCLinkage hwExport const char* hwAssetGetBoneName(hwHAsset aid, int nth)
     return nullptr;
 }
 
-hwCLinkage hwExport void hwAssetGetBoneIndices(hwHAsset aid, hwFloat4 &o_indices)
+hwExport void hwAssetGetBoneIndices(hwHAsset aid, hwFloat4 &o_indices)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetGetBoneIndices(aid, o_indices);
     }
 }
 
-hwCLinkage hwExport void hwAssetGetBoneWeights(hwHAsset aid, hwFloat4 &o_weight)
+hwExport void hwAssetGetBoneWeights(hwHAsset aid, hwFloat4 &o_weight)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetGetBoneWeights(aid, o_weight);
     }
 }
 
-hwCLinkage hwExport void hwAssetGetBindPose(hwHAsset aid, int nth, hwMatrix &o_mat)
+hwExport void hwAssetGetBindPose(hwHAsset aid, int nth, hwMatrix &o_mat)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetGetBindPose(aid, nth, o_mat);
     }
 }
 
-hwCLinkage hwExport void hwAssetGetDefaultDescriptor(hwHAsset aid, hwHairDescriptor &o_desc)
+hwExport void hwAssetGetDefaultDescriptor(hwHAsset aid, hwHairDescriptor &o_desc)
 {
     if (auto ctx = hwGetContext()) {
         ctx->assetGetDefaultDescriptor(aid, o_desc);
@@ -291,50 +292,50 @@ hwCLinkage hwExport void hwAssetGetDefaultDescriptor(hwHAsset aid, hwHairDescrip
 }
 
 
-hwCLinkage hwExport hwHInstance hwInstanceCreate(hwHAsset aid)
+hwExport hwHInstance hwInstanceCreate(hwHAsset aid)
 {
     if (auto ctx = hwGetContext()) {
         return ctx->instanceCreate(aid);
     }
     return hwNullHandle;
 }
-hwCLinkage hwExport void hwInstanceRelease(hwHInstance iid)
+hwExport void hwInstanceRelease(hwHInstance iid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceRelease(iid);
     }
 }
-hwCLinkage hwExport void hwInstanceGetBounds(hwHInstance iid, hwFloat3 *o_min, hwFloat3 *o_max)
+hwExport void hwInstanceGetBounds(hwHInstance iid, hwFloat3 *o_min, hwFloat3 *o_max)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceGetBounds(iid, *o_min, *o_max);
     }
 }
-hwCLinkage hwExport void hwInstanceGetDescriptor(hwHInstance iid, hwHairDescriptor *desc)
+hwExport void hwInstanceGetDescriptor(hwHInstance iid, hwHairDescriptor *desc)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceGetDescriptor(iid, *desc);
     }
 }
-hwCLinkage hwExport void hwInstanceSetDescriptor(hwHInstance iid, const hwHairDescriptor *desc)
+hwExport void hwInstanceSetDescriptor(hwHInstance iid, const hwHairDescriptor *desc)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceSetDescriptor(iid, *desc);
     }
 }
-hwCLinkage hwExport void hwInstanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex)
+hwExport void hwInstanceSetTexture(hwHInstance iid, hwTextureType type, hwTexture *tex)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceSetTexture(iid, type, tex);
     }
 }
-hwCLinkage hwExport void hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_bones, hwMatrix *matrices)
+hwExport void hwInstanceUpdateSkinningMatrices(hwHInstance iid, int num_bones, hwMatrix *matrices)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceUpdateSkinningMatrices(iid, num_bones, matrices);
     }
 }
-hwCLinkage hwExport void hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bones, hwDQuaternion *dqs)
+hwExport void hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bones, hwDQuaternion *dqs)
 {
     if (auto ctx = hwGetContext()) {
         ctx->instanceUpdateSkinningDQs(iid, num_bones, dqs);
@@ -342,64 +343,66 @@ hwCLinkage hwExport void hwInstanceUpdateSkinningDQs(hwHInstance iid, int num_bo
 }
 
 
-hwCLinkage hwExport void hwBeginScene()
+hwExport void hwBeginScene()
 {
     if (auto ctx = hwGetContext()) {
         ctx->beginScene();
     }
 }
-hwCLinkage hwExport void hwEndScene()
+hwExport void hwEndScene()
 {
     if (auto ctx = hwGetContext()) {
         ctx->endScene();
     }
 }
 
-hwCLinkage hwExport void hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov)
+hwExport void hwSetViewProjection(const hwMatrix *view, const hwMatrix *proj, float fov)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setViewProjection(*view, *proj, fov);
     }
 }
 
-hwCLinkage hwExport void hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer)
+hwExport void hwSetRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setRenderTarget(framebuffer, depthbuffer);
     }
 }
 
-hwCLinkage hwExport void hwSetShader(hwHShader sid)
+hwExport void hwSetShader(hwHShader sid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setShader(sid);
     }
 }
 
-hwCLinkage hwExport void hwSetLights(int num_lights, const hwLightData *lights)
+hwExport void hwSetLights(int num_lights, const hwLightData *lights)
 {
     if (auto ctx = hwGetContext()) {
         ctx->setLights(num_lights, lights);
     }
 }
 
-hwCLinkage hwExport void hwRender(hwHInstance iid)
+hwExport void hwRender(hwHInstance iid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->render(iid);
     }
 }
 
-hwCLinkage hwExport void hwRenderShadow(hwHInstance iid)
+hwExport void hwRenderShadow(hwHInstance iid)
 {
     if (auto ctx = hwGetContext()) {
         ctx->renderShadow(iid);
     }
 }
 
-hwCLinkage hwExport void hwStepSimulation(float dt)
+hwExport void hwStepSimulation(float dt)
 {
     if (auto ctx = hwGetContext()) {
         ctx->stepSimulation(dt);
     }
 }
+
+} // extern "C"

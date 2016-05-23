@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "HairWorksIntegration.h"
+#include "hwInternal.h"
 #include "hwContext.h"
 
 
