@@ -2,6 +2,12 @@
 #include "hwInternal.h"
 #include "hwContext.h"
 
+#if defined(_M_IX86)
+    #define hwSDKDLL "GFSDK_HairWorks.win32.dll"
+#elif defined(_M_X64)
+    #define hwSDKDLL "GFSDK_HairWorks.win64.dll"
+#endif
+
 
 bool operator==(const hwConversionSettings &a, const hwConversionSettings &b)
 {
@@ -23,12 +29,26 @@ bool hwFileToString(std::string &o_buf, const char *path)
 
 
 
+hwSDK* hwContext::loadSDK()
+{
+    static char s_path[MAX_PATH] = {0};
+    if(s_path[0] == 0) {
+        // get path to this module
+        HMODULE mod = 0;
+        ::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)&hwInitialize, &mod);
+        DWORD size = ::GetModuleFileNameA(mod, s_path, sizeof(s_path));
+        for (int i = size - 1; i >= 0; --i) {
+            if (s_path[i] == '\\') {
+                s_path[i + 1] = '\0';
+                std::strncat(s_path, hwSDKDLL, MAX_PATH);
+                break;
+            }
+        }
+    }
+    return GFSDK_LoadHairSDK(s_path, GFSDK_HAIRWORKS_VERSION);
+}
+
 hwContext::hwContext()
-    : m_d3ddev(nullptr)
-    , m_d3dctx(nullptr)
-    , m_sdk(nullptr)
-    , m_rs_enable_depth(nullptr)
-    , m_rs_constant_buffer(nullptr)
 {
 }
 
@@ -42,12 +62,11 @@ bool hwContext::valid() const
     return m_d3ddev!=nullptr && m_d3dctx!=nullptr && m_sdk!=nullptr;
 }
 
-bool hwContext::initialize(const char *path_to_dll, hwDevice *d3d_device)
+bool hwContext::initialize(hwDevice *d3d_device)
 {
-    if (m_sdk != nullptr) { return true; }
-    if (path_to_dll == nullptr || d3d_device == nullptr) { return false; }
+    if (d3d_device == nullptr) { return false; }
 
-    m_sdk = GFSDK_LoadHairSDK(path_to_dll, GFSDK_HAIRWORKS_VERSION);
+    m_sdk = loadSDK();
     if (m_sdk != nullptr) {
         hwDebugLog("GFSDK_LoadHairSDK(\"%s\") succeeded.\n", path_to_dll);
     }
@@ -126,7 +145,6 @@ void hwContext::finalize()
         m_d3dctx->Release();
         m_d3dctx = nullptr;
     }
-
 }
 
 void hwContext::move(hwContext &from)
@@ -486,57 +504,64 @@ void hwContext::endScene()
     m_mutex.unlock();
 }
 
-template<class T>
-void hwContext::pushDrawCommand(const T &c)
+void hwContext::pushDeferredCall(const DeferredCall &c)
 {
-    const char *begin = (const char*)&c;
-    m_commands.insert(m_commands.end(), begin, begin+sizeof(T));
+    m_commands.push_back(c);
 }
 
 void hwContext::setRenderTarget(hwTexture *framebuffer, hwTexture *depthbuffer)
 {
-    DrawCommandRT c = { CID_SetRenderTarget, framebuffer, depthbuffer };
-    pushDrawCommand(c);
+    pushDeferredCall([=]() {
+        setRenderTargetImpl(framebuffer, depthbuffer);
+    });
 }
 
 void hwContext::setViewProjection(const hwMatrix &view, const hwMatrix &proj, float fov)
 {
-    DrawCommandVP c = { CID_SetViewProjection, fov, view, proj };
-    pushDrawCommand(c);
+    pushDeferredCall([=]() {
+        setViewProjectionImpl(view, proj, fov);
+    });
 }
 
 void hwContext::setShader(hwHShader hs)
 {
-    DrawCommandI c = { CID_SetShader, hs };
-    pushDrawCommand(c);
+    pushDeferredCall([=]() {
+        setShaderImpl(hs);
+    });
 }
 
-void hwContext::setLights(int num_lights, const hwLightData *lights)
+void hwContext::setLights(int num_lights, const hwLightData *lights_)
 {
+    std::array<hwLightData, hwMaxLights> lights;
     num_lights = std::min<int>(num_lights, hwMaxLights);
-    DrawCommandL c = { CID_SetLights, num_lights };
-    std::copy(lights, lights + num_lights, c.lights);
-    pushDrawCommand(c);
+    std::copy(lights_, lights_ + num_lights, &lights[0]);
+    pushDeferredCall([=]() {
+        setLightsImpl(num_lights, &lights[0]);
+    });
+
 }
 
 void hwContext::render(hwHInstance hi)
 {
-    DrawCommandI c = { CID_Render, hi };
-    pushDrawCommand(c);
+    pushDeferredCall([=]() {
+        renderImpl(hi);
+    });
 }
 
 void hwContext::renderShadow(hwHInstance hi)
 {
-    DrawCommandI c = { CID_RenderShadow, hi };
-    pushDrawCommand(c);
+    pushDeferredCall([=]() {
+        renderShadowImpl(hi);
+    });
 }
 
 void hwContext::stepSimulation(float dt)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    DrawCommandF c = { CID_StepSimulation, dt };
-    pushDrawCommand(c);
+    pushDeferredCall([=]() {
+        stepSimulationImpl(dt);
+    });
 }
 
 
@@ -673,60 +698,9 @@ void hwContext::flush()
     }
 
     m_d3dctx->OMSetDepthStencilState(m_rs_enable_depth, 0);
-    auto &commands = m_commands_back;
-    for (int i=0; i<commands.size(); ) {
-        CommandID cid = (CommandID&)commands[i];
-        switch (cid) {
-        case CID_SetViewProjection:
-        {
-            const auto c = (DrawCommandVP&)commands[i];
-            setViewProjectionImpl(c.view, c.proj, c.fov);
-            i += sizeof(c);
-            break;
-        }
-        case CID_SetRenderTarget:
-        {
-            const auto c = (DrawCommandRT&)commands[i];
-            setRenderTargetImpl(c.framebuffer, c.depthbuffer);
-            i += sizeof(c);
-            break;
-        }
-        case CID_SetShader:
-        {
-            const auto c = (DrawCommandI&)commands[i];
-            setShaderImpl(c.arg);
-            i += sizeof(c);
-            break;
-        }
-        case CID_SetLights:
-        {
-            const auto c = (DrawCommandL&)commands[i];
-            setLightsImpl(c.num_lights, c.lights);
-            i += sizeof(c);
-            break;
-        }
-        case CID_Render:
-        {
-            const auto c = (DrawCommandI&)commands[i];
-            renderImpl(c.arg);
-            i += sizeof(c);
-            break;
-        }
-        case CID_RenderShadow:
-        {
-            const auto c = (DrawCommandI&)commands[i];
-            renderShadowImpl(c.arg);
-            i += sizeof(c);
-            break;
-        }
-        case CID_StepSimulation:
-        {
-            const auto c = (DrawCommandF&)commands[i];
-            stepSimulationImpl(c.arg);
-            i += sizeof(c);
-            break;
-        }
-        }
+    for (auto& c : m_commands_back) {
+        c();
     }
+    m_commands_back.clear();
 }
 

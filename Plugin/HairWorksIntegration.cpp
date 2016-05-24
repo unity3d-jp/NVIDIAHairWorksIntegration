@@ -2,12 +2,6 @@
 #include "hwInternal.h"
 #include "hwContext.h"
 
-#if defined(_M_IX86)
-    #define hwSDKDLL "GFSDK_HairWorks.win32.dll"
-#elif defined(_M_X64)
-    #define hwSDKDLL "GFSDK_HairWorks.win64.dll"
-#endif
-
 struct hwPluginContext
 {
     IUnityInterfaces    *unity_interface;
@@ -152,29 +146,23 @@ void hwDebugLogImpl(const char* fmt, ...)
 
 extern "C" {
 
+hwExport bool hwTryLoadHairWorks()
+{
+    if (auto sdk = hwContext::loadSDK()) {
+        sdk->Release();
+        return true;
+    }
+    return false;
+}
+
 hwExport bool hwInitialize()
 {
     if (g_hw_ctx != nullptr) {
         return true;
     }
 
-    char path[MAX_PATH];
-    {
-        // get path to this module
-        HMODULE mod = 0;
-        ::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)&hwInitialize, &mod);
-        DWORD size = ::GetModuleFileNameA(mod, path, sizeof(path));
-        for (int i = size - 1; i >= 0; --i) {
-            if (path[i] == '\\') {
-                path[i+1] = '\0';
-                std::strncat(path, hwSDKDLL, MAX_PATH);
-                break;
-            }
-        }
-    }
-
     g_hw_ctx = new hwContext();
-    if (g_hw_ctx->initialize(path, g_d3d11_device)) {
+    if (g_hw_ctx->initialize(g_d3d11_device)) {
         return true;
     }
     else {

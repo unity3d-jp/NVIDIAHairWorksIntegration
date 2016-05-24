@@ -44,6 +44,8 @@ class   hwContext;
 
 // Unity plugin callbacks
 extern "C" {
+hwExport bool            hwTryLoadHairWorks();
+
 hwExport bool            hwInitialize();
 hwExport void            hwFinalize();
 hwExport hwContext*      hwGetContext();

@@ -107,7 +107,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PostBuildEvent>
       <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\HairWorksIntegration\
-xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
+xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
@@ -130,7 +130,7 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Master|x64'">
     <PostBuildEvent>
       <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\HairWorksIntegration\
-xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\HairWorksIntegration\Plugins\x86_64\
+xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\Plugins\x86_64\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
     <ClCompile>
@@ -188,6 +188,11 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\HairWorksIntegration\
+xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\Plugins\x86\
+$(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy32.exe /target:Unity.exe /patch:$(TargetPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -196,6 +201,11 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\HairWorksIntegration\
+xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\Plugins\x86\
+$(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy32.exe /target:Unity.exe /patch:$(TargetPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

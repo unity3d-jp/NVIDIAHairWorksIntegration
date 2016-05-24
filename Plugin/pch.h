@@ -5,6 +5,7 @@
 #include <functional>
 #include <fstream>
 #include <cstdint>
+#include <array>
 #include <thread>
 #include <mutex>
 
