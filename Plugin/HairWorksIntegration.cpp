@@ -146,13 +146,22 @@ void hwDebugLogImpl(const char* fmt, ...)
 
 extern "C" {
 
-hwExport bool hwTryLoadHairWorks()
+hwExport int hwGetSDKVersion()
+{
+    return GFSDK_HAIRWORKS_VERSION;
+}
+
+hwExport bool hwLoadHairWorks()
 {
     if (auto sdk = hwContext::loadSDK()) {
-        sdk->Release();
         return true;
     }
     return false;
+}
+
+hwExport void hwUnloadHairWorks()
+{
+    hwContext::unloadSDK();
 }
 
 hwExport bool hwInitialize()

@@ -35,7 +35,7 @@ namespace UTJ
         static CameraEvent s_timing = CameraEvent.BeforeImageEffects;
 
         public string m_hair_asset;
-        public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
+        public string m_hair_shader = "UTJ/HairWorksIntegration/DefaultHairShader.cso";
         public Transform m_root_bone;
         public bool m_invert_bone_x = true;
         public hwi.Descriptor m_params = hwi.Descriptor.default_value;
@@ -243,11 +243,11 @@ namespace UTJ
         void Awake()
         {
 #if UNITY_EDITOR
-            if(!hwi.hwTryLoadHairWorks())
+            if(!hwi.hwLoadHairWorks())
             {
                 EditorUtility.DisplayDialog(
                     "Hair Works Integration",
-                    "Failed to load HairWorks dll. You need to get HairWorks SDK from NVIDIA website. Read document for more detail.",
+                    "Failed to load HairWorks (version " + hwi.hwGetSDKVersion() + ") dll. You need to get HairWorks SDK from NVIDIA website. Read document for more detail.",
                     "OK");
             }
 #endif

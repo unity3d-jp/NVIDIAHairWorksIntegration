@@ -2,6 +2,7 @@
 *.pch
 *.lib
 *.exe
+*.dll
 *.exp
 *.ilk
 *.ipch
@@ -12,6 +13,8 @@
 *.user
 *.log
 *.tlog
+*.db
+*.opendb
 
 GFSDK_HairWorks.win64.dll*
 HairWorksIntegration/*.sln

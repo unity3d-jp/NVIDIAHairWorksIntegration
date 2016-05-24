@@ -74,6 +74,7 @@ class hwContext
 {
 public:
     static hwSDK* loadSDK();
+    static void   unloadSDK();
 
 
 public:
@@ -148,7 +149,6 @@ private:
 
     ID3D11Device            *m_d3ddev = nullptr;
     ID3D11DeviceContext     *m_d3dctx = nullptr;
-    hwSDK                   *m_sdk = nullptr;
     ShaderCont              m_shaders;
     AssetCont               m_assets;
     InstanceCont            m_instances;

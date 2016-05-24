@@ -13,8 +13,11 @@ public class Packaging
     {
         string[] files = new string[]
         {
-"Assets/HairWorksIntegration",
-"Assets/StreamingAssets/HairWorksIntegration",
+"Assets/UTJ/HairWorksIntegration",
+"Assets/UTJ/Misc",
+"Assets/UTJ/Plugins/x86/HairWorksIntegration.dll",
+"Assets/UTJ/Plugins/x86_64/HairWorksIntegration.dll",
+"Assets/StreamingAssets/UTJ/HairWorksIntegration",
 "Assets/smcs.rsp",
         };
         AssetDatabase.ExportPackage(files, "HairWorksIntegration.unitypackage", ExportPackageOptions.Recurse);

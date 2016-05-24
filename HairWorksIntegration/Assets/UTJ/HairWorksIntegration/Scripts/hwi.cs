@@ -494,7 +494,9 @@ namespace UTJ
         public delegate void hwLogCallback(System.IntPtr cstr);
 
         
-        [DllImport("HairWorksIntegration")] public static extern Bool       hwTryLoadHairWorks();
+        [DllImport("HairWorksIntegration")] public static extern int        hwGetSDKVersion();
+        [DllImport("HairWorksIntegration")] public static extern Bool       hwLoadHairWorks();
+        [DllImport("HairWorksIntegration")] public static extern void       hwUnloadHairWorks();
 
         [DllImport("HairWorksIntegration")] public static extern IntPtr     hwGetRenderEventFunc();
         [DllImport("HairWorksIntegration")] public static extern void       hwSetLogCallback(hwLogCallback cb);

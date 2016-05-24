@@ -10,18 +10,18 @@ MAYA や 3ds Max でオーサリングした Hair データを Unity で表示�
 **Unity 5.2 以降、かつ Windows & D3D11 専用です**。  
 使用には少々面倒な前準備が必要です。
 Hair Works SDK は再配布が認められていないため、各自個別に NVIDIA の開発者サイトから入手してプロジェクトへインポートする必要があります。
-以下に手順を記します。現状 SDK はバージョン 1.1 を前提としています。
+以下に手順を記します。現状 SDK はバージョン 1.1.1 を前提としています。
 
 1.  [このパッケージ](https://github.com/unity3d-jp/NVIDIAHairWorksIntegration/raw/master/Packages/HairWorksIntegration.unitypackage) をプロジェクトへインポート
 2.  Hair Works SDK を入手
-  * https://developer.nvidia.com/hairworks ここの Download -> HairWorks 1.1
+  * https://developer.nvidia.com/gameworksdownload ここの NVIDIA HairWorks -> HairWorks 1.1.1
   * ダウンロードには NVIDIA の開発者アカウントが必要です。アカウント作成は無料ですが、申請から作成されるまでに 1 日前後時間がかかります。
   * MAYA や 3ds Max のプラグインもここから入手できます
-3.  Hair Works SDK に含まれる必要なデータをプロジェクトへインポート
-  * HairWorks-r1-1-212-distro/bin/win64/GFSDK_HairWorks.win64.dll を Assets/HairWorksIntegration/Plugins/x86_64 の中にコピー
+3.  Hair Works SDK に含まれる必要なファイルをプロジェクトへインポート
+  * HairWorks-r1_1_1-62/HairWorks/bin/win64/GFSDK_HairWorks.win64.dll を Assets/UTJ/Plugins/x86_64 の中にコピー
 
 シェーダをカスタマイズしたい場合、hair には Unity のシェーダは使えないので独自に HLSL を書いてコンパイルする必要があります。
-シェーダやプラグイン本体をビルドしたい場合、HairWorks-r1-1-212-distro ディレクトリをまるごと Plugin/Externals の中にコピーしてから Plugin/HairWorksIntegration.sln をビルドします。  
+シェーダやプラグイン本体をビルドしたい場合、HairWorks-r1_1_1-62/HairWorks ディレクトリをまるごと Plugin/Externals の中にコピーしてから Plugin/HairWorksIntegration.sln をビルドします。  
 ちなみにスクリーンショットの虫は SDK 付属のサンプルで、media/Mite にあります。
 
 ### Hair Instance Component
@@ -78,10 +78,4 @@ Hair をライティングするにはこのコンポーネントが必要です
 大雑把にまとめると、ゲームの開始画面、マニュアル、プレスリリースなどに [NVIDIA Game Works のロゴ](https://developer.nvidia.com/gameworks-logo) の表示義務が生じ、加えて商用利用の場合は NVIDIA へその旨を報告する必要がある、といったものです。ライセンス料の類は特にないようです。
 
 ## License
-MIT License:
-
-Copyright (C) 2015 Unity Technologies Japan, G.K.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+[MIT](HairWorksIntegration/Assets/StreamingAssets/UTJ/HairWorksIntegration/License.txt)
