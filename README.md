@@ -56,26 +56,12 @@ Hair をライティングするにはこのコンポーネントが必要です
 ![mite](doc/hair_light.png)  
 大体見たまんまです。copy_light_params をチェックすると Light コンポーネントのパラメータをコピーして使うようになります。
 
-## Known Issue & ToDo
-- 影
-  - 近い先に対応予定
-- テクスチャによる hair の色、長さ、分布などの指定
-  - 近い先に対応予定
-- アンチエイリアス
-  - 考え中
-- Hair のアセットやシェーダは StreamingAssets に丸裸の状態で置く必要がある
-  - いずれ他の選択肢も用意する予定
-- パラメータの設定項目が膨大でわかりにくい
-  - いい改善アイデアがあれば対応予定
-- スケールをかけるとおかしくなる
-  - 対処したいものの方法が思いつかず、未定…
-
 ## Warning
 **Hair Works を含む NVIDIA GameWorks SDK は、使用する場合 NVIDIA のロゴの表示義務が生じます**。
 これは本プラグインを使用する場合にも適用されます。使用の際はこちらをよく確認してそれに従ってください。  
 [GameWorks SDK EULA](https://developer.nvidia.com/gameworks-sdk-eula)  
 
-大雑把にまとめると、ゲームの開始画面、マニュアル、プレスリリースなどに [NVIDIA Game Works のロゴ](https://developer.nvidia.com/gameworks-logo) の表示義務が生じ、加えて商用利用の場合は NVIDIA へその旨を報告する必要がある、といったものです。ライセンス料の類は特にないようです。
+大雑把にまとめると、ゲームの開始画面、マニュアル、プレスリリースなどに NVIDIA Game Works のロゴの表示義務が生じ、加えて商用利用の場合は NVIDIA へその旨を報告する必要がある、といったものです。ライセンス料の類は特にないようです。
 
 ## License
 [MIT](HairWorksIntegration/Assets/StreamingAssets/UTJ/HairWorksIntegration/License.txt)
