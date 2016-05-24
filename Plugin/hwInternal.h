@@ -7,10 +7,7 @@ using namespace DirectX; // for DirectX Math
     #define hwWindows
 #endif
 
-#ifdef hwDebug
-    void hwDebugLogImpl(const char* fmt, ...);
-    #define hwDebugLog(...) hwDebugLogImpl(__VA_ARGS__)
-#else
-    #define hwDebugLog(...)
-#endif
+void hwLogImpl(const char* fmt, ...);
+#define hwLog(...) hwLogImpl(__VA_ARGS__)
+
 #include "HairWorksIntegration.h"

@@ -114,7 +114,7 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>hwDebug;hwVerboseDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>hwDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
@@ -138,7 +138,8 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>$(SolutionDir)_tmp\$(ProjectName)_$(Platform)_$(Configuration)\</PreprocessorDefinitions>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
       <Optimization>Full</Optimization>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -172,7 +173,8 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Master|Win32'">
     <ClCompile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <PreprocessorDefinitions>$(SolutionDir)_tmp\$(ProjectName)_$(Platform)_$(Configuration)\</PreprocessorDefinitions>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -187,6 +189,7 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy64.exe /target:Unity.exe /
     </Link>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ModuleDefinitionFile>exports_x86.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\UTJ\HairWorksIntegration\
@@ -200,12 +203,16 @@ $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy32.exe /target:Unity.exe /
       <FloatingPointModel>Fast</FloatingPointModel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PreprocessorDefinitions>hwDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <PostBuildEvent>
       <Command>xcopy /Yq $(TargetDir)*.cso $(SolutionDir)..\HairWorksIntegration\Assets\StreamingAssets\UTJ\HairWorksIntegration\
 xcopy /Yq $(TargetPath) $(SolutionDir)..\HairWorksIntegration\Assets\UTJ\Plugins\x86\
 $(SolutionDir)Externals\PatchLibrary\PatchLibraryProxy32.exe /target:Unity.exe /patch:$(TargetPath)</Command>
     </PostBuildEvent>
+    <Link>
+      <ModuleDefinitionFile>exports_x86.def</ModuleDefinitionFile>
+    </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

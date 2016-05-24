@@ -124,8 +124,7 @@ extern "C" { int _afxForceUSRDLL; }
 
 
 
-#ifdef hwDebug
-void hwDebugLogImpl(const char* fmt, ...)
+void hwLogImpl(const char* fmt, ...)
 {
     va_list vl;
     va_start(vl, fmt);
@@ -141,7 +140,6 @@ void hwDebugLogImpl(const char* fmt, ...)
 
     va_end(vl);
 }
-#endif // hwDebug
 
 
 extern "C" {

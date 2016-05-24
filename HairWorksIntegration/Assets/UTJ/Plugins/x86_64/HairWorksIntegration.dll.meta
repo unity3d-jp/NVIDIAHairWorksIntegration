@@ -8,13 +8,19 @@ PluginImporter:
   executionOrder: {}
   isPreloaded: 0
   platformData:
-    Any:
-      enabled: 1
-      settings: {}
-    Editor:
+    Android:
       enabled: 0
       settings:
+        CPU: AnyCPU
+    Any:
+      enabled: 0
+      settings: {}
+    Editor:
+      enabled: 1
+      settings:
+        CPU: x86_64
         DefaultValueInitialized: true
+        OS: Windows
     Linux:
       enabled: 0
       settings:
@@ -26,7 +32,7 @@ PluginImporter:
     LinuxUniversal:
       enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: None
     OSXIntel:
       enabled: 0
       settings:
@@ -38,15 +44,20 @@ PluginImporter:
     OSXUniversal:
       enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: None
     Win:
       enabled: 0
       settings:
         CPU: AnyCPU
     Win64:
-      enabled: 0
+      enabled: 1
       settings:
         CPU: AnyCPU
+    iOS:
+      enabled: 0
+      settings:
+        CompileFlags: 
+        FrameworkDependencies: 
   userData: 
   assetBundleName: 
   assetBundleVariant: 
